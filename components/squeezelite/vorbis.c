@@ -113,15 +113,15 @@ static size_t _read_cb(void *ptr, size_t size, size_t nmemb, void *datasource) {
 	size_t bytes;
 
 	LOCK_S;
-	
+
 	bytes = min(_buf_used(streambuf), _buf_cont_read(streambuf));
 	bytes = min(bytes, size * nmemb);
 
 	memcpy(ptr, streambuf->readp, bytes);
 	_buf_inc_readp(streambuf, bytes);
-	
+
 	UNLOCK_S;
-	
+
 	return bytes / size;
 }
 
@@ -137,7 +137,7 @@ static decode_state vorbis_decode(void) {
 	u8_t *write_buf;
 
 	LOCK_S;
-	
+
 	if (stream.state <= DISCONNECT && !_buf_used(streambuf)) {
 		UNLOCK_S;
 		return DECODE_COMPLETE;
@@ -151,7 +151,7 @@ static decode_state vorbis_decode(void) {
 		struct vorbis_info *info;
 
 		cbs.read_func = _read_cb;
-		
+
 		if (TREMOR(v)) {
 			cbs.seek_func = _seek_cb; cbs.close_func = _close_cb; cbs.tell_func = _tell_cb;
 		} else {
@@ -162,13 +162,13 @@ static decode_state vorbis_decode(void) {
 			LOG_WARN("open_callbacks error: %d", err);
 			return DECODE_COMPLETE;
 		}
-		
+
 		v->opened = true;
 		info = OV(v, info, v->vf, -1);
-				
+
 		LOG_INFO("setting track_start");
 		LOCK_O;
-		output.next_sample_rate = decode_newstream(info->rate, output.supported_rates); 
+		output.next_sample_rate = decode_newstream(info->rate, output.supported_rates);
 		IF_DSD(	output.next_fmt = PCM; )
 		output.track_start = outputbuf->writep;
 		if (output.fade_mode) _checkfade(true);
@@ -186,15 +186,18 @@ static decode_state vorbis_decode(void) {
 #if !FRAME_BUF		
 	LOCK_O_direct;
 #endif	
-	
+
+#if FRAME_BUF
 	IF_DIRECT(
 		frames = min(_buf_space(outputbuf), _buf_cont_write(outputbuf)) / BYTES_PER_FRAME;
-#if FRAME_BUF		
 		write_buf = v->write_buf;
-#else
-		write_buf = outputbuf->writep;
-#endif	
 	);
+#else
+	IF_DIRECT(
+		frames = min(_buf_space(outputbuf), _buf_cont_write(outputbuf)) / BYTES_PER_FRAME;
+		write_buf = outputbuf->writep;
+	);
+#endif
 	IF_PROCESS(
 		frames = process.max_in_frames;
 		write_buf = process.inbuf;
@@ -244,7 +247,7 @@ static decode_state vorbis_decode(void) {
 			while (count--) {
 				*--optr = *--iptr << 16;
 			}
-#endif			
+#endif
 		} else if (channels == 1) {
 			while (count--) {
 				*--optr = ALIGN(*--iptr);
@@ -271,7 +274,7 @@ static decode_state vorbis_decode(void) {
 
 		// recoverable hole in stream, seen when skipping
 		LOG_DEBUG("hole in stream");
-	
+
 	} else {
 
 		LOG_INFO("ov_read error: %d", n);
