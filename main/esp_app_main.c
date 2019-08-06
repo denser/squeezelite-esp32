@@ -18,10 +18,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
- 
 #include "platform_esp32.h"
+#include "led.h"
+
+#ifdef CONFIG_SQUEEZEAMP
+#define LED_GREEN_GPIO 	12
+#define LED_RED_GPIO	13
+#else
+#define LED_GREEN_GPIO 	0
+#define LED_RED_GPIO	0
+#endif
 
 void app_main()
 {
+	led_config(LED_GREEN, LED_GREEN_GPIO, 0);
+	led_config(LED_RED, LED_RED_GPIO, 0);
+	
 	console_start();
 }
