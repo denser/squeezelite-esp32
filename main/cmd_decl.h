@@ -16,7 +16,7 @@ extern "C" {
 #include "cmd_wifi.h"
 #include "cmd_nvs.h"
 #include "cmd_i2ctools.h"
-
+#include "cmd_ota.h"
 #ifdef __cplusplus
 }
 #endif
