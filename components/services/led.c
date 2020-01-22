@@ -21,7 +21,7 @@
 #define MAX_LED	8
 #define BLOCKTIME	10	// up to portMAX_DELAY
 
-static const char TAG[] = "led";
+static const char *TAG = "led";
 
 static struct led_s {
 	gpio_num_t gpio;
@@ -32,6 +32,10 @@ static struct led_s {
 	bool pushed;
 	TimerHandle_t timer;
 } leds[MAX_LED];
+
+void led_svc_init(void) {
+	ESP_LOGI(TAG, "Initializing led");
+}
 
 static void vCallbackFunction( TimerHandle_t xTimer ) {
 	struct led_s *led = (struct led_s*) pvTimerGetTimerID (xTimer);
