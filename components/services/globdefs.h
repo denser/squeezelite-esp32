@@ -32,4 +32,5 @@ extern bool gpio36_39_used;
 #else 
 #define LED_GREEN_GPIO	CONFIG_LED_GREEN_GPIO
 #define LED_RED_GPIO	CONFIG_LED_RED_GPIO
+#define JACK_GPIO		CONFIG_JACK_GPIO
 #endif
