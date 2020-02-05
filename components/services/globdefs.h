@@ -22,6 +22,7 @@
 
 #define I2C_SYSTEM_PORT	1
 extern int i2c_system_port;
+extern bool gpio36_39_used;
 
 #ifdef CONFIG_SQUEEZEAMP
 #define JACK_GPIO		34
@@ -31,4 +32,5 @@ extern int i2c_system_port;
 #else 
 #define LED_GREEN_GPIO	CONFIG_LED_GREEN_GPIO
 #define LED_RED_GPIO	CONFIG_LED_RED_GPIO
+#define JACK_GPIO		CONFIG_JACK_GPIO
 #endif
