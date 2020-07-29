@@ -73,6 +73,7 @@ static void Update16( struct GDS_Device* Device ) {
 		LastCol = LastCol * 2 + 1;
 		SetRowAddress( Device, FirstRow, LastRow );
 		SetColumnAddress( Device, FirstCol, LastCol );
+		Device->WriteCommand( Device, ENABLE_WRITE );
 			
 		int ChunkSize = (LastCol - FirstCol + 1) * 2;
 			
@@ -83,12 +84,10 @@ static void Update16( struct GDS_Device* Device ) {
 				memcpy(optr, Private->Shadowbuffer + (i * Device->Width + FirstCol) * 2, ChunkSize);
 				optr += ChunkSize;
 				if (optr - Private->iRAM < PAGE_BLOCK && i < LastRow) continue;
-				Device->WriteCommand( Device, ENABLE_WRITE );
 				Device->WriteData(Device, Private->iRAM, optr - Private->iRAM);
 				optr = Private->iRAM;
 			}
 		} else for (int i = FirstRow; i <= LastRow; i++) {
-			Device->WriteCommand( Device, ENABLE_WRITE );
 			Device->WriteData( Device, Private->Shadowbuffer + (i * Device->Width + FirstCol) * 2, ChunkSize );
 		}	
 
@@ -103,13 +102,12 @@ static void Update16( struct GDS_Device* Device ) {
 		int Height = min(Private->PageSize, Device->Height - r);
 		
 		SetRowAddress( Device, r, r + Height - 1 );
+		Device->WriteCommand(Device, ENABLE_WRITE);		
 		
 		if (Private->iRAM) {
 			memcpy(Private->iRAM, Device->Framebuffer + r * Device->Width * 2, Height * Device->Width * 2 );
-			Device->WriteCommand(Device, ENABLE_WRITE);
 			Device->WriteData( Device, Private->iRAM, Height * Device->Width * 2 );
 		} else	{
-			Device->WriteCommand(Device, ENABLE_WRITE);
 			Device->WriteData( Device, Device->Framebuffer + r * Device->Width * 2, Height * Device->Width * 2 );
 		}	
 	}	
@@ -142,6 +140,7 @@ static void Update24( struct GDS_Device* Device ) {
 		LastCol = (LastCol * 2 + 1) / 3; 
 		SetRowAddress( Device, FirstRow, LastRow );
 		SetColumnAddress( Device, FirstCol, LastCol );
+		Device->WriteCommand( Device, ENABLE_WRITE );
 			
 		int ChunkSize = (LastCol - FirstCol + 1) * 3;
 					
@@ -152,12 +151,10 @@ static void Update24( struct GDS_Device* Device ) {
 				memcpy(optr, Private->Shadowbuffer + (i * Device->Width + FirstCol) * 3, ChunkSize);
 				optr += ChunkSize;
 				if (optr - Private->iRAM < PAGE_BLOCK && i < LastRow) continue;
-				Device->WriteCommand( Device, ENABLE_WRITE );
 				Device->WriteData(Device, Private->iRAM, optr - Private->iRAM);
 				optr = Private->iRAM;
 			}	
 		} else for (int i = FirstRow; i <= LastRow; i++) {
-			Device->WriteCommand( Device, ENABLE_WRITE );
 			Device->WriteData( Device, Private->Shadowbuffer + (i * Device->Width + FirstCol) * 3, ChunkSize );
 		}	
 
@@ -167,15 +164,14 @@ static void Update24( struct GDS_Device* Device ) {
 #else
 	// always update by full lines
 	SetColumnAddress( Device, 0, Device->Width - 1);
+	Device->WriteCommand(Device, ENABLE_WRITE);
 	
 	for (int r = 0; r < Device->Height; r += Private->PageSize) {
 		SetRowAddress( Device, r, r + Private->PageSize - 1 );
 		if (Private->iRAM) {
 			memcpy(Private->iRAM, Device->Framebuffer + r * Device->Width * 3, Private->PageSize * Device->Width * 3 );
-			Device->WriteCommand(Device, ENABLE_WRITE);
 			Device->WriteData( Device, Private->iRAM, Private->PageSize * Device->Width * 3 );
 		} else	{
-			Device->WriteCommand(Device, ENABLE_WRITE);
 			Device->WriteData( Device, Device->Framebuffer + r * Device->Width * 3, Private->PageSize * Device->Width * 3 );
 		}	
 	}	
