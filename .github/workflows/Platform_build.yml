@@ -171,7 +171,7 @@ jobs:
             zip build/${artifact_file_name} partitions*.csv components/ build/*.bin build/bootloader/bootloader.bin build/partition_table/partition-table.bin build/flash_project_args build/size_*.txt
         fi
     - name: Upload Build Artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: ${{ needs.bootstrap.outputs.mock == 0 }}
       with:
         name: ${{ env.artifact_prefix }}
