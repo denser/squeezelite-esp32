@@ -5,12 +5,8 @@ permissions:
   contents: write
 
 on:
-  push:
-    branches: 
-      - '**4.3'
-  pull_request:
-    branches:
-      - '**4.3'
+  # legacy build path (docker-run + buildFirmware.sh); the supported build is "Platform Build"
+  workflow_dispatch:
 jobs:
   job1:
     name: Build Number
