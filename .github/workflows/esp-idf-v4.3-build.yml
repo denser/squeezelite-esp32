@@ -100,6 +100,18 @@ jobs:
         echo pulling custom docker image  ${DOCKER_IMAGE_NAME}
         docker pull ${DOCKER_IMAGE_NAME}
         docker run --env-file=${TARGET_BUILD_NAME}-env.txt  -v $PWD:/project -w /project ${DOCKER_IMAGE_NAME} /bin/bash -c "./buildFirmware.sh"
+    - name: Make sure the app binary is at build/squeezelite.bin
+      run: |
+        set -e
+        if [ ! -f build/squeezelite.bin ]; then
+          echo "build/squeezelite.bin is missing, looking for it..."
+          found="$(find . -name 'squeezelite.bin' -not -path './build/*' | head -n 1)"
+          echo "found: ${found}"
+          mkdir -p build
+          if [ -n "${found}" ]; then cp "${found}" build/squeezelite.bin; fi
+        fi
+        ls -l build/*.bin
+        test -f build/squeezelite.bin
     # - name: Build Mock firmware
     #   run: |
     #     mkdir -p build
@@ -134,7 +146,7 @@ jobs:
         path: |
           build/squeezelite.bin
     - name: Create Release
-      if: env.release_flag == 1
+      if: github.event_name == 'push'
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ env.tag }}
