@@ -27,6 +27,7 @@
 #include "squeezelite.h"
 #include "slimproto.h"
 #include "display.h"
+#include "platform_config.h"
 
 #if EMBEDDED
 // implemented in components/driver_bt/bt_app_source.c - no-op unless the BT output is connected
@@ -517,6 +518,22 @@ static int gain_to_avrcp_volume(u32_t gain) {
 }
 #endif
 
+/*
+ * Draw the volume on the display ourselves. Only needed when the server does not
+ * push its own display frames (Music Assistant has a per-player "display support"
+ * option for that), otherwise both would draw and the screen would flicker.
+ * Opt-in through the display_local_volume NVS key.
+ */
+static bool display_local_volume_enabled(void) {
+	static int8_t enabled = -1;
+	if (enabled < 0) {
+		char *value = config_alloc_get(NVS_TYPE_STR, "display_local_volume");
+		enabled = (value && (!strcasecmp(value, "y") || !strcasecmp(value, "yes") || !strcmp(value, "1"))) ? 1 : 0;
+		if (value) free(value);
+	}
+	return enabled == 1;
+}
+
 static void process_audg(u8_t *pkt, int len) {
 	struct audg_packet *audg = (struct audg_packet *)pkt;
 	audg->gainL = unpackN(&audg->gainL);
@@ -533,10 +550,11 @@ static void process_audg(u8_t *pkt, int len) {
 		LOG_INFO("audg gain %u -> sink volume %d", audg->gainL, sink_volume);
 		hal_bluetooth_set_volume(sink_volume);
 
-		// keep a local display in sync: a minimal server (Music Assistant, for
-		// instance) sends its volume screen once at connection and never again,
-		// so the number would otherwise stay frozen
-		displayer_volume((sink_volume * 100 + 63) / 127);
+		// keep a local display in sync when the server does not drive it
+		// (a minimal server sends its volume screen once and never again)
+		if (display_local_volume_enabled()) {
+			displayer_volume((sink_volume * 100 + 63) / 127);
+		}
 	}
 #endif
 }

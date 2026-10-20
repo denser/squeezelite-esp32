@@ -104,6 +104,7 @@ const DefaultStringVal defaultStringVals[] = {
     {"gpio_exp_config", CONFIG_GPIO_EXP_CONFIG},
     {"bat_config", ""},
     {"metadata_config", ""},
+    {"display_local_volume", "n"},
     {"telnet_enable", ""},
     {"telnet_buffer", "40000"},
     {"telnet_block", "500"},
