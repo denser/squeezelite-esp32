@@ -32,6 +32,17 @@ export function setTheme(value) {
 }
 
 export function initTheme() {
+  // ?theme=light|dark forces a theme without touching the stored preference
+  try {
+    const forced = new URLSearchParams(location.search).get('theme');
+    if (forced === 'light' || forced === 'dark') {
+      applyTheme(forced);
+      return;
+    }
+  } catch {
+    /* ignore */
+  }
+
   applyTheme(get(theme));
   if (typeof matchMedia === 'undefined') return;
   const media = matchMedia('(prefers-color-scheme: dark)');
