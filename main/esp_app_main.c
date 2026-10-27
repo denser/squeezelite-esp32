@@ -105,6 +105,8 @@ const DefaultStringVal defaultStringVals[] = {
     {"bat_config", ""},
     {"metadata_config", ""},
     {"display_local_volume", "n"},
+    {"web_auth", ""},
+    {"web_token", ""},
     {"telnet_enable", ""},
     {"telnet_buffer", "40000"},
     {"telnet_block", "500"},
