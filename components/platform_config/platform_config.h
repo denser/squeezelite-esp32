@@ -46,6 +46,8 @@ DECLARE_GET_NUM(int8_t);
 DECLARE_GET_NUM(int16_t);
 DECLARE_GET_NUM(int32_t);
 
+extern int player_state; // 0 stopped, 1 playing, 2 paused
+
 bool config_has_changes();
 void config_commit_to_nvs();
 void config_start_timer();

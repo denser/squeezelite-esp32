@@ -28,6 +28,10 @@
 #include "esp_console.h"
 #include "esp_vfs_dev.h"
 #include "driver/uart.h"
+
+// Shared player state, written by the slimproto handler and read by the status
+// endpoint (0 = stopped, 1 = playing, 2 = paused).
+int player_state = 0;
 #include "linenoise/linenoise.h"
 #include "argtable3/argtable3.h"
 

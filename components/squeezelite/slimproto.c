@@ -325,6 +325,7 @@ static void process_strm(u8_t *pkt, int len) {
 			break;
 		}
 	case 'q':
+		player_state = 0;
 		decode_flush(true);
 		if (!output.external) output_flush();
 		status.frames_played = 0;
@@ -334,6 +335,7 @@ static void process_strm(u8_t *pkt, int len) {
 		break;
 	case 'p':
 		{
+			player_state = 2;
 			unsigned interval = unpackN(&strm->replay_gain);
 			LOCK_O;
 			output.pause_frames = interval * status.current_sample_rate / 1000;
@@ -360,6 +362,7 @@ static void process_strm(u8_t *pkt, int len) {
 		break;
 	case 'u':
 		{
+			player_state = 1;
 			unsigned jiffies = unpackN(&strm->replay_gain);
 			LOCK_O;
 			output.state = jiffies ? OUTPUT_START_AT : OUTPUT_RUNNING;
@@ -372,6 +375,7 @@ static void process_strm(u8_t *pkt, int len) {
 		break;
 	case 's':
 		{
+			player_state = 1;
 			unsigned header_len = len - sizeof(struct strm_packet);
 			char *header = (char *)(pkt + sizeof(struct strm_packet));
 			in_addr_t ip = (in_addr_t)strm->server_ip; // keep in network byte order

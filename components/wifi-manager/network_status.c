@@ -277,6 +277,7 @@ cJSON* network_status_get_basic_info(cJSON** old) {
 #else
         *old = network_update_cjson_number(old, "depth", 16);
 #endif
+        *old = network_update_cjson_number(old, "player", player_state);
         *old = network_update_cjson_number(old, "uptime", (int)(esp_timer_get_time() / 1000000LL));
         *old = network_update_cjson_number(old, "heap_internal", (int)heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
         *old = network_update_cjson_number(old, "heap_external", (int)heap_caps_get_free_size(MALLOC_CAP_SPIRAM));
