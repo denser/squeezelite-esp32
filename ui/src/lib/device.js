@@ -4,7 +4,7 @@ import { tokenize, getOpt } from './args.js';
 
 // Shared device state: one poller for the whole app (the header needs the same
 // data as the status view, and doubling the request rate is pointless).
-const STATUS_TIMEOUT = 8000;
+const STATUS_TIMEOUT = 5000;
 const OFFLINE_AFTER = 2; // consecutive failures before calling the link dead
 
 export const device = writable({
@@ -65,7 +65,7 @@ export async function refreshDevice() {
   }
 }
 
-export function startDevicePolling(interval = 5000) {
+export function startDevicePolling(interval = 2000) {
   loadOutput();
   refreshDevice();
   if (!timer) timer = setInterval(refreshDevice, interval);

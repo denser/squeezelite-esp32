@@ -136,5 +136,5 @@
 {/if}
 
 <p class="muted small">
-  Обновлено: {lastUpdate ? lastUpdate.toLocaleTimeString() : '—'} · обновление каждые 5 с
+  Обновлено: {lastUpdate ? lastUpdate.toLocaleTimeString() : '—'} · обновление каждые 2 с
 </p>

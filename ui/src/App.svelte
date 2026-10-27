@@ -68,7 +68,7 @@
 
   onMount(() => {
     initTheme();
-    const stop = startDevicePolling(5000);
+    const stop = startDevicePolling(2000);
     const onHash = () => (tab = fromHash());
     window.addEventListener('hashchange', onHash);
     return () => {
