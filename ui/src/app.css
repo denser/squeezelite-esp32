@@ -573,3 +573,17 @@ a.button:hover {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.15; }
 }
+
+.dot.dac-idle,
+.dot.spdif-idle {
+  background: #2a3a55;
+  box-shadow: none;
+}
+
+.dot.dac-idle {
+  background: #1f4a3a;
+}
+
+.dot.spdif-idle {
+  background: #4a3524;
+}

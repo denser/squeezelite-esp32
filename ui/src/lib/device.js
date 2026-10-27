@@ -91,7 +91,16 @@ export function describeLink(state) {
     if (bt === 3 || bt === 0) return { tone: 'bt-idle', pulsing: false, text: 'Bluetooth: колонка не подключена' };
     return { tone: 'bt', text: 'Bluetooth: состояние неизвестно' };
   }
-  if (out === 'i2s') return { tone: 'dac', text: 'Выход: I2S / ЦАП' };
-  if (out === 'spdif') return { tone: 'spdif', text: 'Выход: SPDIF' };
+  if (out === 'i2s') return dacState(status, 'I2S / ЦАП', 'dac');
+  if (out === 'spdif') return dacState(status, 'SPDIF', 'spdif');
   return { tone: 'unknown', text: `Выход: ${output || 'не определён'}` };
+}
+
+// For wired outputs the meaningful signal is the player state: playing is
+// steady, paused pulses, stopped stays dim.
+function dacState(status, name, tone) {
+  const player = status?.player;
+  if (player === 1) return { tone, pulsing: false, text: `Выход: ${name} · играет` };
+  if (player === 2) return { tone, pulsing: true, text: `Выход: ${name} · пауза` };
+  return { tone: `${tone}-idle`, text: `Выход: ${name} · нет воспроизведения` };
 }
