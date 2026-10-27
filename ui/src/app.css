@@ -914,3 +914,13 @@ select:focus {
   display: block;
 }
 
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.icon-btn svg {
+  display: block;
+}
+

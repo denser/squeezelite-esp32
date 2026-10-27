@@ -193,8 +193,24 @@
       Ключ доступа <span class="muted">(web_token)</span>
       <span class="with-actions">
         <input bind:value={form.web_token} placeholder="пусто = без защиты" />
-        <button class="icon-btn" type="button" title="сгенерировать новый ключ" onclick={() => (form.web_token = generateToken())}>⟳</button>
-        <button class="icon-btn" type="button" title="скопировать ссылку с ключом" onclick={() => navigator.clipboard?.writeText(linkWithToken(form.web_token))}>⧉</button>
+        <button class="icon-btn" type="button" title="сгенерировать новый ключ" onclick={() => (form.web_token = generateToken())}>
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.3-5.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            <path d="M20 4v4h-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </button>
+        <button
+          class="icon-btn"
+          type="button"
+          title="скопировать ссылку с ключом"
+          disabled={!form.web_token}
+          onclick={() => navigator.clipboard?.writeText(linkWithToken(form.web_token))}
+        >
+          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7" />
+            <path d="M15 6.5V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+          </svg>
+        </button>
       </span>
     </label>
     <label>
