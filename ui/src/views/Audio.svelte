@@ -161,6 +161,12 @@
     Ресемплинг <code>-R</code> (если источник не 44,1 кГц)
   </label>
 
+  <div class="actions tight">
+    <button class="linklike" onclick={() => (showAll = !showAll)}>
+      {showAll ? 'Скрыть разделы других выходов' : 'Показать все разделы'}
+    </button>
+  </div>
+
   {#if showBt}
     <h3>Bluetooth</h3>
     <div class="form">
@@ -245,10 +251,7 @@
   {/if}
 
   <div class="actions">
-    <button class="linklike" onclick={() => (showAll = !showAll)}>
-      {showAll ? 'Скрыть разделы других выходов' : 'Показать все разделы'}
-    </button>
-    <a class="muted small" href="#nvs">открыть autoexec1 в NVS</a>
+    <a class="linkline" href="#nvs">открыть autoexec1 в NVS</a>
   </div>
 
   <p class="muted small">Итоговая строка:</p>
