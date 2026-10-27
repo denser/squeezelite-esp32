@@ -510,3 +510,66 @@ a.button:hover {
 .topbar {
   gap: 16px;
 }
+
+/* --- functional status dot (top-left) --- */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex: none;
+  background: #4c8dff;
+  box-shadow: 0 0 6px rgba(76, 141, 255, 0.6);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+
+.dot.bt {
+  background: #4c8dff;
+  box-shadow: 0 0 6px rgba(76, 141, 255, 0.65);
+}
+
+.dot.bt-idle {
+  background: #2a3a55;
+  box-shadow: none;
+}
+
+.dot.dac {
+  background: #34d399;
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.6);
+}
+
+.dot.spdif {
+  background: #fb923c;
+  box-shadow: 0 0 6px rgba(251, 146, 60, 0.6);
+}
+
+.dot.stale {
+  background: #fbbf24;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+}
+
+.dot.offline {
+  background: #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+  animation: dot-blink 1s steps(2, start) infinite;
+}
+
+.dot.pulse {
+  animation: dot-pulse 1.4s ease-in-out infinite;
+}
+
+.dot.unknown {
+  background: #3b4354;
+  box-shadow: none;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@keyframes dot-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.15; }
+}

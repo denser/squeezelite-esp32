@@ -7,7 +7,7 @@
   import System from './views/System.svelte';
   import Firmware from './views/Firmware.svelte';
   import Placeholder from './views/Placeholder.svelte';
-  import { device, startDevicePolling } from './lib/device.js';
+  import { device, startDevicePolling, describeLink } from './lib/device.js';
   import { reboot } from './api.js';
 
   const tabs = [
@@ -55,11 +55,12 @@
   });
 
   $: recovery = $device.status?.recovery === 1;
+  $: dot = describeLink($device);
 </script>
 
 <header class="topbar">
   <div class="brand">
-    <span class="dot"></span>
+    <span class="dot {dot.tone}" class:pulse={dot.pulsing} title={dot.text}></span>
     <strong>Squeezelite-ESP32</strong>
     <span class="muted" id="host">{typeof location !== 'undefined' ? location.host : ''}</span>
   </div>

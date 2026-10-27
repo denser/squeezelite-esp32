@@ -4,6 +4,7 @@
 
   // the data comes from the shared poller in App.svelte
   $: status = $device.status;
+  $: link = $device.link;
   $: error = $device.error ?? '';
   $: lastUpdate = $device.updated ? new Date($device.updated) : null;
 
@@ -22,8 +23,10 @@
   $: rssiLevel = rssi === null ? 0 : rssi >= -55 ? 4 : rssi >= -65 ? 3 : rssi >= -75 ? 2 : 1;
 </script>
 
-{#if error}
-  <div class="banner error">Нет связи с устройством: {error}</div>
+{#if link === 'offline'}
+  <div class="banner error">Нет связи с устройством: {error || 'нет ответа'}</div>
+{:else if link === 'stale'}
+  <div class="banner warn">Плата отвечает медленнее обычного — ниже последние полученные данные.</div>
 {/if}
 
 {#if status?.recovery}

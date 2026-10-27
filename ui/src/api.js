@@ -29,8 +29,8 @@ async function request(path, { method = 'GET', body, timeout = TIMEOUT } = {}) {
   }
 }
 
-export const getStatus = () => request('/status.json');
-export const getConfig = () => request('/config.json');
+export const getStatus = (timeout) => request('/status.json', { timeout });
+export const getConfig = (timeout) => request('/config.json', { timeout });
 export const getCommands = () => request('/commands.json');
 export const getScan = () => request('/scan.json');
 export const reboot = () => request('/reboot.json', { method: 'POST' });
