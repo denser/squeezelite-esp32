@@ -97,9 +97,23 @@
       <span class="badge warn">восстановление</span>
     {/if}
     <div class="theme-switch" role="group" aria-label="тема">
-      <button class:active={$theme === 'light'} title="светлая" onclick={() => setTheme('light')}>☀</button>
-      <button class:active={$theme === 'dark'} title="тёмная" onclick={() => setTheme('dark')}>☾</button>
-      <button class:active={$theme === 'system'} title="как в системе" onclick={() => setTheme('system')}>◐</button>
+      <button class:active={$theme === 'light'} title="светлая" onclick={() => setTheme('light')}>
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <circle cx="12" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="1.7" />
+          <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.2 5.2l1.7 1.7M17.1 17.1l1.7 1.7M18.8 5.2l-1.7 1.7M6.9 17.1l-1.7 1.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+        </svg>
+      </button>
+      <button class:active={$theme === 'dark'} title="тёмная" onclick={() => setTheme('dark')}>
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+        </svg>
+      </button>
+      <button class:active={$theme === 'system'} title="как в системе" onclick={() => setTheme('system')}>
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <circle cx="12" cy="12" r="8.3" fill="none" stroke="currentColor" stroke-width="1.7" />
+          <path d="M12 3.7v16.6a8.3 8.3 0 0 0 0-16.6z" fill="currentColor" />
+        </svg>
+      </button>
     </div>
     <button class:primary={recovery || confirmReboot} onclick={armReboot} disabled={rebooting}>
       {rebooting ? 'Перезагружаю…' : confirmReboot ? 'Точно перезагрузить?' : recovery ? 'Выйти из восстановления' : 'Перезагрузить'}
