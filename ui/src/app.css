@@ -1105,3 +1105,35 @@ select.dirty {
     flex: 1;
   }
 }
+
+@media (max-width: 900px) {
+  /* the control cluster gets its own row instead of squeezing the brand */
+  .sysbar {
+    flex-basis: 100%;
+    justify-content: flex-end;
+  }
+
+  /* key/value lists become plain stacked text, nothing can overflow */
+  .card dl,
+  .card .facts {
+    display: block;
+  }
+
+  .card dl dt,
+  .card .facts dt {
+    margin-top: 10px;
+    color: var(--muted);
+  }
+
+  .card dl dd,
+  .card .facts dd {
+    margin: 0;
+    text-align: left;
+  }
+
+  pre,
+  code {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
