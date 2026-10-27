@@ -1179,3 +1179,16 @@ select.dirty {
     margin-left: 0;
   }
 }
+
+/* inline <code> inside labels must sit on the same baseline as the text */
+.check code,
+label code {
+  font-size: 0.94em;
+  line-height: 1;
+  vertical-align: baseline;
+  padding: 0 3px;
+}
+
+code {
+  vertical-align: baseline;
+}
