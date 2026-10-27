@@ -36,7 +36,7 @@
   $: showBt = output.toLowerCase() === 'bt' || showAll;
   $: showDac = output.toLowerCase() === 'i2s' || showAll;
   $: showSpdif = output.toLowerCase() === 'spdif' || showAll;
-  $: command = buildCommand();
+  $: command = buildCommand(autoexec1, form.buffers, output, resample);
   $: changedCount = changedKeys().length + (command !== autoexec1 ? 1 : 0);
 
   function clockOf(value) {
@@ -80,11 +80,12 @@
     }
   }
 
-  function buildCommand() {
-    let t = tokenize(autoexec1);
-    t = setOpt(t, '-o', output);
-    t = setOpt(t, '-b', norm(form.buffers).trim());
-    t = setFlag(t, '-R', resample);
+  // parameters are explicit so Svelte re-runs this whenever any of them changes
+  function buildCommand(line, buffers, out, resampleOn) {
+    let t = tokenize(line);
+    t = setOpt(t, '-o', out);
+    t = setOpt(t, '-b', norm(buffers).trim());
+    t = setFlag(t, '-R', resampleOn);
     return join(t);
   }
 
@@ -100,7 +101,7 @@
       const entries = {};
       for (const key of changedKeys()) entries[key] = form[key];
 
-      const cmd = buildCommand();
+      const cmd = buildCommand(autoexec1, form.buffers, output, resample);
       if (cmd !== autoexec1) entries.autoexec1 = cmd;
 
       const spdif = [];
