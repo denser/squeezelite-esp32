@@ -17,6 +17,10 @@ on:
         description: 'Force a Release build. When not forced, the system will check for release word in the last commit message to trigger a release'
         required: true
         type: boolean
+concurrency:
+  group: platform-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   bootstrap:
     name: Global setup
@@ -44,7 +48,10 @@ jobs:
       run: |
         git config --global --add safe.directory /__w/squeezelite-esp32/squeezelite-esp32   
         [ ${{github.event.inputs.ui_build}} ] && ui_build_option="--ui_build" || ui_build_option="" 
-        release_build_option="--force"
+        # a release is only published when the commit message contains "release",
+        # or when the manual run asks for it - this keeps the release list clean
+        # and avoids hammering the Actions triggers on every push
+        [ "${{ github.event.inputs.release_build }}" = "true" ] && release_build_option="--force" || release_build_option=""
         echo "ui_build_option=$ui_build_option" >> "$GITHUB_OUTPUT"
         echo "release_build_option=$release_build_option" >> "$GITHUB_OUTPUT"
         echo "Dumping environment"
