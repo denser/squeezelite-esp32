@@ -1137,3 +1137,17 @@ select.dirty {
     overflow-x: auto;
   }
 }
+
+@media (max-width: 900px) {
+  /* pin the burger so it cannot be pushed out by a wide brand */
+  .burger {
+    display: inline-flex;
+    position: absolute;
+    top: 10px;
+    right: 12px;
+  }
+
+  .brand {
+    padding-right: 52px;
+  }
+}
