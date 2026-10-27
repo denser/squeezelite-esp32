@@ -1,29 +1,11 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
-  import { getStatus } from '../api.js';
   import { describeBt } from '../lib/bt.js';
+  import { device } from '../lib/device.js';
 
-  let status = null;
-  let error = '';
-  let lastUpdate = null;
-  let timer = null;
-
-  async function poll() {
-    try {
-      status = await getStatus();
-      error = '';
-      lastUpdate = new Date();
-    } catch (e) {
-      error = e?.message ?? String(e);
-    }
-  }
-
-  onMount(() => {
-    poll();
-    timer = setInterval(poll, 2000);
-  });
-
-  onDestroy(() => clearInterval(timer));
+  // the data comes from the shared poller in App.svelte
+  $: status = $device.status;
+  $: error = $device.error ?? '';
+  $: lastUpdate = $device.updated ? new Date($device.updated) : null;
 
   function fmtUptime(sec) {
     const s = Number(sec) || 0;
@@ -141,5 +123,5 @@
 </div>
 
 <p class="muted small">
-  Обновлено: {lastUpdate ? lastUpdate.toLocaleTimeString() : '—'} · опрос каждые 2 с
+  Обновлено: {lastUpdate ? lastUpdate.toLocaleTimeString() : '—'} · обновление каждые 5 с
 </p>

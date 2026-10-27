@@ -4,15 +4,20 @@
   import Player from './views/Player.svelte';
   import Nvs from './views/Nvs.svelte';
   import Audio from './views/Audio.svelte';
+  import System from './views/System.svelte';
   import Firmware from './views/Firmware.svelte';
   import Placeholder from './views/Placeholder.svelte';
+  import { device, startDevicePolling } from './lib/device.js';
+  import { reboot } from './api.js';
 
   const tabs = [
     { id: 'status', label: 'Статус' },
     { id: 'player', label: 'Плеер' },
-    { id: 'nvs', label: 'NVS' },
     { id: 'audio', label: 'Звук' },
+    { id: 'screen', label: 'Экран' },
+    { id: 'system', label: 'Система' },
     { id: 'firmware', label: 'Прошивка' },
+    { id: 'nvs', label: 'NVS' },
   ];
 
   const fromHash = () => {
@@ -21,17 +26,35 @@
   };
 
   let tab = fromHash();
+  let rebooting = false;
 
   function select(id) {
     tab = id;
     if (typeof history !== 'undefined') history.replaceState(null, '', `#${id}`);
   }
 
+  async function doReboot() {
+    rebooting = true;
+    try {
+      await reboot();
+    } catch {
+      /* the device drops the connection while rebooting */
+    } finally {
+      setTimeout(() => (rebooting = false), 5000);
+    }
+  }
+
   onMount(() => {
+    const stop = startDevicePolling(5000);
     const onHash = () => (tab = fromHash());
     window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
+    return () => {
+      stop();
+      window.removeEventListener('hashchange', onHash);
+    };
   });
+
+  $: recovery = $device.status?.recovery === 1;
 </script>
 
 <header class="topbar">
@@ -45,6 +68,14 @@
       <button class:active={tab === t.id} onclick={() => select(t.id)}>{t.label}</button>
     {/each}
   </nav>
+  <div class="sysbar">
+    {#if recovery}
+      <span class="badge warn">восстановление</span>
+    {/if}
+    <button class:primary={recovery} onclick={doReboot} disabled={rebooting}>
+      {rebooting ? 'Перезагружаю…' : recovery ? 'Выйти из восстановления' : 'Перезагрузить'}
+    </button>
+  </div>
 </header>
 
 <main>
@@ -52,12 +83,14 @@
     <Status />
   {:else if tab === 'player'}
     <Player />
-  {:else if tab === 'nvs'}
-    <Nvs />
   {:else if tab === 'audio'}
     <Audio />
+  {:else if tab === 'system'}
+    <System />
   {:else if tab === 'firmware'}
     <Firmware />
+  {:else if tab === 'nvs'}
+    <Nvs />
   {:else}
     <Placeholder name={tabs.find((t) => t.id === tab)?.label ?? ''} />
   {/if}
