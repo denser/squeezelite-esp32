@@ -965,3 +965,23 @@ select:focus {
 .actions.tight {
   margin-top: 4px;
 }
+
+/* unsaved changes: the field border tells you what will be written */
+:root[data-theme='dark'] {
+  --dirty: #f0b429;
+}
+
+:root[data-theme='light'] {
+  --dirty: #d97706;
+}
+
+input.dirty,
+select.dirty {
+  border-color: var(--dirty);
+  box-shadow: 0 0 0 1px var(--dirty) inset;
+}
+
+.segmented.dirty {
+  border-color: var(--dirty);
+  box-shadow: 0 0 0 1px var(--dirty) inset;
+}

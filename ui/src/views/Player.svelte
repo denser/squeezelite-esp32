@@ -11,6 +11,7 @@
   let msg = '';
   let error = '';
   let saving = false;
+  let loaded = { name: '', server: '', timeout: '' };
 
   async function load() {
     error = '';
@@ -21,6 +22,7 @@
       name = getOpt(tokens, '-n');
       server = getOpt(tokens, '-s');
       timeout = getOpt(tokens, '-C');
+      loaded = { name, server, timeout };
       preview = original;
     } catch (e) {
       error = e?.message ?? String(e);
@@ -65,17 +67,17 @@
   <div class="form">
     <label>
       Имя плеера <span class="muted">(-n)</span>
-      <input bind:value={name} oninput={build} placeholder="Living room" />
+      <input class:dirty={name !== loaded.name} bind:value={name} oninput={build} placeholder="Living room" />
     </label>
 
     <label>
       Сервер <span class="muted">(-s)</span>
-      <input bind:value={server} oninput={build} placeholder="192.168.1.10" />
+      <input class:dirty={server !== loaded.server} bind:value={server} oninput={build} placeholder="192.168.1.10" />
     </label>
 
     <label>
       Закрывать выход через, с <span class="muted">(-C, пусто = никогда)</span>
-      <input bind:value={timeout} oninput={build} placeholder="пусто" />
+      <input class:dirty={timeout !== loaded.timeout} bind:value={timeout} oninput={build} placeholder="пусто" />
     </label>
   </div>
 

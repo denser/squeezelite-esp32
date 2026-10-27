@@ -31,6 +31,7 @@
 
   const norm = (v) => String(v ?? '');
   const changedKeys = () => Object.keys(form).filter((k) => norm(form[k]) !== norm(original[k]));
+  const dirty = (key) => norm(form[key]) !== norm(original[key]);
 
   $: logValue = logTarget ? `${logTarget}=${logLevel || 'info'}` : '';
   $: changedCount = changedKeys().length + (logValue !== (getOpt(tokenize(autoexec1), '-d') || '') ? 1 : 0);
@@ -117,7 +118,7 @@
         {f.label}
         {#if f.key === 'ap_pwd'}
           <span class="with-eye">
-            <input type={showPwd ? 'text' : 'password'} bind:value={form[f.key]} />
+            <input type={showPwd ? 'text' : 'password'} class:dirty={dirty(f.key)} bind:value={form[f.key]} />
             <button class="eye" type="button" onclick={() => (showPwd = !showPwd)} title={showPwd ? 'скрыть' : 'показать'}>
               <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
                 <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z" fill="none" stroke="currentColor" stroke-width="1.7" />
@@ -127,7 +128,7 @@
             </button>
           </span>
         {:else}
-          <input type={f.numeric ? 'number' : 'text'} bind:value={form[f.key]} />
+          <input type={f.numeric ? 'number' : 'text'} class:dirty={dirty(f.key)} bind:value={form[f.key]} />
         {/if}
         {#if f.hint}<span class="muted small hint">{f.hint}</span>{/if}
       </label>
@@ -153,12 +154,12 @@
 
     <label>
       Буфер логов, байт
-      <input type="number" bind:value={form.telnet_buffer} />
+      <input type="number" class:dirty={dirty('telnet_buffer')} bind:value={form.telnet_buffer} />
     </label>
 
     <label>
       Блок передачи, байт
-      <input type="number" bind:value={form.telnet_block} />
+      <input type="number" class:dirty={dirty('telnet_block')} bind:value={form.telnet_block} />
     </label>
   </div>
 
@@ -181,7 +182,7 @@
     {#each FIELDS.slice(6) as f (f.key)}
       <label>
         {f.label}
-        <input bind:value={form[f.key]} />
+        <input class:dirty={dirty(f.key)} bind:value={form[f.key]} />
       </label>
     {/each}
   </div>
@@ -192,7 +193,7 @@
     <label>
       Ключ доступа <span class="muted">(web_token)</span>
       <span class="with-actions">
-        <input bind:value={form.web_token} placeholder="пусто = без защиты" />
+        <input class:dirty={dirty('web_token')} bind:value={form.web_token} placeholder="пусто = без защиты" />
         <button class="icon-btn" type="button" title="сгенерировать новый ключ" onclick={() => (form.web_token = generateToken())}>
           <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
             <path d="M20 12a8 8 0 1 1-2.3-5.6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
@@ -215,7 +216,7 @@
     </label>
     <label>
       Режим <span class="muted">(web_auth)</span>
-      <select bind:value={form.web_auth}>
+      <select class:dirty={dirty('web_auth')} bind:value={form.web_auth}>
         <option value="">выключено</option>
         <option value="write">только изменения (POST)</option>
         <option value="all">всё, включая чтение</option>
@@ -223,7 +224,7 @@
     </label>
     <label>
       Без ключа пускать с IP <span class="muted">(web_allow_ip)</span>
-      <input bind:value={form.web_allow_ip} placeholder="192.168.1.*, 10.0.0.5" />
+      <input class:dirty={dirty('web_allow_ip')} bind:value={form.web_allow_ip} placeholder="192.168.1.*, 10.0.0.5" />
       <span class="muted small hint">через запятую; звёздочка в конце — любой адрес подсети</span>
     </label>
   </div>

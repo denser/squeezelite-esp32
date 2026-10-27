@@ -102,7 +102,7 @@
           <code>{row.key}</code>{#if row.value !== row.original}<span class="badge">изменено</span>{/if}
           {#if HINTS[row.key]}<span class="muted small hint">{HINTS[row.key]}</span>{/if}
         </div>
-        <input value={row.value} oninput={(e) => edit(row.key, e.currentTarget.value)} />
+        <input class:dirty={row.value !== row.original} value={row.value} oninput={(e) => edit(row.key, e.currentTarget.value)} />
       </div>
     {/each}
   </div>

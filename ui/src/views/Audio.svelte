@@ -21,6 +21,7 @@
   let form = {};
   let original = {};
   let preset = '';
+  let originalOutput = '';
   let showAll = false;
   let msg = '';
   let error = '';
@@ -28,6 +29,7 @@
 
   const norm = (v) => String(v ?? '');
   const changedKeys = () => Object.keys(form).filter((k) => !k.startsWith('__') && norm(form[k]) !== norm(original[k]));
+  const dirty = (key) => norm(form[key]) !== norm(original[key]);
 
   $: tokens = tokenize(autoexec1);
   $: output = getOpt(tokens, '-o') || 'bt';
@@ -142,7 +144,7 @@
     <div class="banner ok">{msg}</div>
   {/if}
 
-  <div class="segmented">
+  <div class="segmented" class:dirty={output !== originalOutput}>
     {#each OUTPUTS as o}
       <button class:active={output.toLowerCase() === o.id.toLowerCase()} onclick={() => (output = o.id)}>
         {o.label}
@@ -153,7 +155,7 @@
   <div class="form">
     <label>
       Буферы, КБ <span class="muted">(-b поток:выход)</span>
-      <input bind:value={form.buffers} placeholder="500:1000" />
+      <input class:dirty={dirty('buffers')} bind:value={form.buffers} placeholder="500:1000" />
     </label>
   </div>
 
@@ -173,15 +175,15 @@
     <div class="form">
       <label>
         Имя колонки <span class="muted">(a2dp_sink_name)</span>
-        <input bind:value={form.a2dp_sink_name} placeholder="My Speaker" />
+        <input class:dirty={dirty('a2dp_sink_name')} bind:value={form.a2dp_sink_name} placeholder="My Speaker" />
       </label>
       <label>
         PIN <span class="muted">(a2dp_spin)</span>
-        <input bind:value={form.a2dp_spin} placeholder="1234 или 0000" />
+        <input class:dirty={dirty('a2dp_spin')} bind:value={form.a2dp_spin} placeholder="1234 или 0000" />
       </label>
       <label>
         Имя адаптера <span class="muted">(a2dp_dev_name)</span>
-        <input bind:value={form.a2dp_dev_name} placeholder="Squeezelite" />
+        <input class:dirty={dirty('a2dp_dev_name')} bind:value={form.a2dp_dev_name} placeholder="Squeezelite" />
       </label>
     </div>
 
@@ -201,11 +203,11 @@
     <div class="form">
       <label>
         PIN приёмника <span class="muted">(bt_sink_pin)</span>
-        <input bind:value={form.bt_sink_pin} disabled={!sinkEnabled} />
+        <input class:dirty={dirty('bt_sink_pin')} bind:value={form.bt_sink_pin} disabled={!sinkEnabled} />
       </label>
       <label>
         Громкость приёмника <span class="muted">(bt_sink_volume, 0–127)</span>
-        <input type="number" bind:value={form.bt_sink_volume} disabled={!sinkEnabled} />
+        <input type="number" class:dirty={dirty('bt_sink_volume')} bind:value={form.bt_sink_volume} disabled={!sinkEnabled} />
       </label>
     </div>
   {/if}
@@ -224,7 +226,7 @@
       </label>
       <label>
         Параметры ЦАП <span class="muted">(dac_config)</span>
-        <input bind:value={form.dac_config} placeholder="model=ES8388,bck=27,…" />
+        <input class:dirty={dirty('dac_config')} bind:value={form.dac_config} placeholder="model=ES8388,bck=27,…" />
       </label>
     </div>
     {#if !norm(form.dac_config).includes('model=')}
@@ -238,15 +240,15 @@
     <div class="form">
       <label>
         clock / BCK <span class="muted">(gpio)</span>
-        <input type="number" bind:value={form.spdif_clock} />
+        <input type="number" class:dirty={dirty('spdif_clock')} bind:value={form.spdif_clock} />
       </label>
       <label>
         wordselect / WS <span class="muted">(gpio)</span>
-        <input type="number" bind:value={form.spdif_ws} />
+        <input type="number" class:dirty={dirty('spdif_ws')} bind:value={form.spdif_ws} />
       </label>
       <label>
         data <span class="muted">(gpio, сам выход)</span>
-        <input type="number" bind:value={form.spdif_data} />
+        <input type="number" class:dirty={dirty('spdif_data')} bind:value={form.spdif_data} />
       </label>
     </div>
   {/if}
