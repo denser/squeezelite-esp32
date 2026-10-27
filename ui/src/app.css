@@ -985,3 +985,61 @@ select.dirty {
   border-color: var(--dirty);
   box-shadow: 0 0 0 1px var(--dirty) inset;
 }
+
+/* collapsible navigation on narrow screens */
+.burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 9px;
+  color: var(--fg);
+}
+
+.burger.open {
+  background: var(--btn-hover);
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    position: sticky;
+    flex-wrap: wrap;
+  }
+
+  .burger {
+    display: inline-flex;
+  }
+
+  nav {
+    display: none;
+  }
+
+  nav.open {
+    display: flex;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 8px 12px 12px;
+    background: var(--topbar);
+    border-bottom: 1px solid var(--line);
+    z-index: 20;
+  }
+
+  nav.open button {
+    justify-content: flex-start;
+    text-align: left;
+    padding: 9px 12px;
+  }
+
+  .sysbar {
+    order: 3;
+    margin-left: 0;
+  }
+
+  .brand {
+    flex: 1;
+  }
+}

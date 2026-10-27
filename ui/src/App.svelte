@@ -31,6 +31,7 @@
   let rebooting = false;
   let keyInput = '';
   let confirmReboot = false;
+  let menuOpen = false;
   let confirmTimer = null;
 
   function armReboot() {
@@ -87,7 +88,16 @@
     <strong>Squeezelite-ESP32</strong>
     <span class="muted" id="host">{typeof location !== 'undefined' ? location.host : ''}</span>
   </div>
-  <nav>
+  <button class="burger" class:open={menuOpen} onclick={() => (menuOpen = !menuOpen)} aria-label="меню">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      {#if menuOpen}
+        <path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      {:else}
+        <path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      {/if}
+    </svg>
+  </button>
+  <nav class:open={menuOpen}>
     {#each tabs as t}
       <button class:active={tab === t.id} onclick={() => select(t.id)}>{t.label}</button>
     {/each}
