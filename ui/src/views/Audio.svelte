@@ -5,53 +5,91 @@
 
   const OUTPUTS = [
     { id: 'bt', label: 'Bluetooth' },
-    { id: 'I2S', label: 'I2S DAC (аналоговый выход)' },
+    { id: 'I2S', label: 'I2S / ЦАП' },
     { id: 'SPDIF', label: 'SPDIF' },
   ];
 
-  const LOGS = ['', 'all=info', 'all=debug', 'slimproto=info', 'output=info', 'wifi=info'];
+  const DAC_PRESETS = [
+    { label: 'ESP32-A1S v2.2 (ES8388)', value: 'model=ES8388,bck=27,ws=25,do=26,sda=33,scl=32,i2c=16' },
+    { label: 'ES8388 (bck=5, sda=18, scl=23)', value: 'model=ES8388,bck=5,ws=25,do=26,sda=18,scl=23,i2c=16' },
+    { label: 'AC101 (LyraT, ранние A1S)', value: 'model=AC101,bck=27,ws=26,do=25,di=35,sda=33,scl=32' },
+    { label: 'TAS57xx', value: 'model=TAS57xx,bck=33,ws=25,do=32,sda=27,scl=26,mute=14:0' },
+    { label: 'Только I2S, без управления кодеком', value: 'model=I2S,bck=27,ws=25,do=26' },
+  ];
 
-  let original = '';
-  let output = 'bt';
-  let outputKnown = true;
-  let buffers = '';
-  let log = '';
-  let resample = false;
-  let btName = '';
-  let preview = '';
+  let autoexec1 = '';
+  let form = {};
+  let original = {};
+  let preset = '';
+  let showAll = false;
   let msg = '';
   let error = '';
   let saving = false;
+
+  const norm = (v) => String(v ?? '');
+  const changedKeys = () => Object.keys(form).filter((k) => !k.startsWith('__') && norm(form[k]) !== norm(original[k]));
+
+  $: tokens = tokenize(autoexec1);
+  $: output = getOpt(tokens, '-o') || 'bt';
+  $: resample = hasFlag(tokens, '-R');
+  $: sinkEnabled = norm(form.enable_bt_sink).toLowerCase().startsWith('y');
+  $: showBt = output.toLowerCase() === 'bt' || showAll;
+  $: showDac = output.toLowerCase() === 'i2s' || showAll;
+  $: showSpdif = output.toLowerCase() === 'spdif' || showAll;
+  $: command = buildCommand();
+  $: changedCount = changedKeys().length + (command !== autoexec1 ? 1 : 0);
+
+  function clockOf(value) {
+    const out = { clock: '', ws: '', data: '' };
+    for (const part of String(value ?? '').split(',')) {
+      const [key, val] = part.split('=');
+      if (key === 'clock') out.clock = val ?? '';
+      if (key === 'wordselect') out.ws = val ?? '';
+      if (key === 'data') out.data = val ?? '';
+    }
+    return out;
+  }
 
   async function load() {
     error = '';
     msg = '';
     try {
       const cfg = await getConfig();
-      original = cfg?.config?.autoexec1?.value ?? '';
-      btName = cfg?.config?.a2dp_sink_name?.value ?? '';
+      const c = cfg?.config ?? {};
+      autoexec1 = c.autoexec1?.value ?? '';
+      const spdif = clockOf(c.spdif_config?.value);
 
-      const tokens = tokenize(original);
-      const o = getOpt(tokens, '-o');
-      outputKnown = OUTPUTS.some((x) => x.id.toLowerCase() === o.toLowerCase());
-      output = outputKnown ? OUTPUTS.find((x) => x.id.toLowerCase() === o.toLowerCase()).id : o;
-      buffers = getOpt(tokens, '-b');
-      log = getOpt(tokens, '-d');
-      resample = hasFlag(tokens, '-R');
-      build();
+      form = {
+        buffers: getOpt(tokenize(autoexec1), '-b'),
+        dac_config: c.dac_config?.value ?? '',
+        a2dp_sink_name: c.a2dp_sink_name?.value ?? '',
+        a2dp_spin: c.a2dp_spin?.value ?? '',
+        a2dp_dev_name: c.a2dp_dev_name?.value ?? '',
+        enable_bt_sink: c.enable_bt_sink?.value ?? 'n',
+        bt_sink_pin: c.bt_sink_pin?.value ?? '',
+        bt_sink_volume: c.bt_sink_volume?.value ?? '',
+        spdif_clock: spdif.clock,
+        spdif_ws: spdif.ws,
+        spdif_data: spdif.data,
+      };
+      form.__spdif = c.spdif_config?.value ?? '';
+      original = { ...form };
+      preset = DAC_PRESETS.find((p) => p.value === form.dac_config)?.value ?? '';
     } catch (e) {
       error = e?.message ?? String(e);
     }
   }
 
-  function build() {
-    let t = tokenize(original);
-    t = setOpt(t, '-o', output === 'custom' ? '' : output);
-    t = setOpt(t, '-b', buffers.trim());
-    t = setOpt(t, '-d', log);
+  function buildCommand() {
+    let t = tokenize(autoexec1);
+    t = setOpt(t, '-o', output);
+    t = setOpt(t, '-b', norm(form.buffers).trim());
     t = setFlag(t, '-R', resample);
-    preview = join(t);
-    return preview;
+    return join(t);
+  }
+
+  function toggle(key) {
+    form[key] = norm(form[key]).toLowerCase().startsWith('y') ? 'N' : 'Y';
   }
 
   async function save() {
@@ -59,10 +97,27 @@
     msg = '';
     error = '';
     try {
-      const cmd = build();
-      await setConfig({ autoexec1: cmd, a2dp_sink_name: btName.trim() });
-      original = cmd;
-      msg = 'Сохранено. Перезагрузите плеер, чтобы применить настройки.';
+      const entries = {};
+      for (const key of changedKeys()) entries[key] = form[key];
+
+      const cmd = buildCommand();
+      if (cmd !== autoexec1) entries.autoexec1 = cmd;
+
+      const spdif = [];
+      if (form.spdif_clock) spdif.push(`clock=${form.spdif_clock}`);
+      if (form.spdif_ws) spdif.push(`wordselect=${form.spdif_ws}`);
+      if (form.spdif_data) spdif.push(`data=${form.spdif_data}`);
+      const spdifValue = spdif.join(',');
+      if (spdifValue !== norm(form.__spdif)) entries.spdif_config = spdifValue;
+
+      if (!Object.keys(entries).length) {
+        msg = 'Изменений нет.';
+        return;
+      }
+
+      await setConfig(entries);
+      msg = 'Сохранено. Для применения нужна перезагрузка.';
+      await load();
     } catch (e) {
       error = e?.message ?? String(e);
     } finally {
@@ -76,50 +131,8 @@
 <section class="card">
   <h2>Звук</h2>
   <p class="muted small">
-    Выход, буферы и уровень логирования. Настройки записываются в строку запуска и в ключ
-    <code>a2dp_sink_name</code>; после сохранения нужна перезагрузка плеера.
+    Меняется только соответствующая опция в строке запуска — остальные настройки остаются нетронутыми.
   </p>
-
-  <div class="form">
-    <label>
-      Выход <span class="muted">(-o)</span>
-      <select bind:value={output} onchange={build}>
-        {#each OUTPUTS as o}
-          <option value={o.id}>{o.label}</option>
-        {/each}
-        {#if !outputKnown}
-          <option value="custom">{output || 'не задан'}</option>
-        {/if}
-      </select>
-    </label>
-
-    <label>
-      Имя Bluetooth-колонки <span class="muted">(a2dp_sink_name)</span>
-      <input bind:value={btName} placeholder="My Speaker" />
-    </label>
-
-    <label>
-      Буферы, КБ <span class="muted">(-b поток:выход)</span>
-      <input bind:value={buffers} oninput={build} placeholder="500:1000" />
-    </label>
-
-    <label>
-      Логирование <span class="muted">(-d)</span>
-      <select bind:value={log} onchange={build}>
-        {#each LOGS as l}
-          <option value={l}>{l || 'выключено'}</option>
-        {/each}
-      </select>
-    </label>
-  </div>
-
-  <label class="check">
-    <input type="checkbox" bind:checked={resample} onchange={build} />
-    Ресемплинг <code>-R</code> (нужен, если источник не 44,1 кГц)
-  </label>
-
-  <p class="muted small">Итоговая строка:</p>
-  <pre class="code">{preview || '—'}</pre>
 
   {#if error}
     <div class="banner error">{error}</div>
@@ -128,8 +141,123 @@
     <div class="banner ok">{msg}</div>
   {/if}
 
+  <div class="segmented">
+    {#each OUTPUTS as o}
+      <button class:active={output.toLowerCase() === o.id.toLowerCase()} onclick={() => (output = o.id)}>
+        {o.label}
+      </button>
+    {/each}
+  </div>
+
+  <div class="form">
+    <label>
+      Буферы, КБ <span class="muted">(-b поток:выход)</span>
+      <input bind:value={form.buffers} placeholder="500:1000" />
+    </label>
+  </div>
+
+  <label class="check">
+    <input type="checkbox" bind:checked={resample} />
+    Ресемплинг <code>-R</code> (если источник не 44,1 кГц)
+  </label>
+
+  {#if showBt}
+    <h3>Bluetooth</h3>
+    <div class="form">
+      <label>
+        Имя колонки <span class="muted">(a2dp_sink_name)</span>
+        <input bind:value={form.a2dp_sink_name} placeholder="My Speaker" />
+      </label>
+      <label>
+        PIN <span class="muted">(a2dp_spin)</span>
+        <input bind:value={form.a2dp_spin} placeholder="1234 или 0000" />
+      </label>
+      <label>
+        Имя адаптера <span class="muted">(a2dp_dev_name)</span>
+        <input bind:value={form.a2dp_dev_name} placeholder="Squeezelite" />
+      </label>
+    </div>
+
+    <label class="check">
+      <input type="checkbox" checked={sinkEnabled} onchange={() => toggle('enable_bt_sink')} />
+      Работать приёмником: телефон → плата
+    </label>
+
+    {#if !sinkEnabled}
+      <p class="muted small">
+        Поля ниже активны только в режиме приёмника: плата принимает звук с телефона, а не
+        отправляет его на колонку.
+        <button class="linklike" onclick={() => toggle('enable_bt_sink')}>Включить режим приёмника</button>
+      </p>
+    {/if}
+
+    <div class="form">
+      <label>
+        PIN приёмника <span class="muted">(bt_sink_pin)</span>
+        <input bind:value={form.bt_sink_pin} disabled={!sinkEnabled} />
+      </label>
+      <label>
+        Громкость приёмника <span class="muted">(bt_sink_volume, 0–127)</span>
+        <input type="number" bind:value={form.bt_sink_volume} disabled={!sinkEnabled} />
+      </label>
+    </div>
+  {/if}
+
+  {#if showDac}
+    <h3>I2S / ЦАП</h3>
+    <div class="form">
+      <label>
+        Пресет
+        <select bind:value={preset} onchange={() => preset && (form.dac_config = preset)}>
+          <option value="">— свой вариант —</option>
+          {#each DAC_PRESETS as p}
+            <option value={p.value}>{p.label}</option>
+          {/each}
+        </select>
+      </label>
+      <label>
+        Параметры ЦАП <span class="muted">(dac_config)</span>
+        <input bind:value={form.dac_config} placeholder="model=ES8388,bck=27,…" />
+      </label>
+    </div>
+    {#if !norm(form.dac_config).includes('model=')}
+      <div class="banner warn">Без <code>model=</code> кодек не настроится — звука на выходе не будет.</div>
+    {/if}
+  {/if}
+
+  {#if showSpdif}
+    <h3>SPDIF</h3>
+    <p class="muted small">SPDIF выводится напрямую, ЦАП не используется. Максимум 24 бита.</p>
+    <div class="form">
+      <label>
+        clock / BCK <span class="muted">(gpio)</span>
+        <input type="number" bind:value={form.spdif_clock} />
+      </label>
+      <label>
+        wordselect / WS <span class="muted">(gpio)</span>
+        <input type="number" bind:value={form.spdif_ws} />
+      </label>
+      <label>
+        data <span class="muted">(gpio, сам выход)</span>
+        <input type="number" bind:value={form.spdif_data} />
+      </label>
+    </div>
+  {/if}
+
   <div class="actions">
-    <button class="primary" onclick={save} disabled={saving}>{saving ? 'Сохраняю…' : 'Сохранить'}</button>
+    <button class="linklike" onclick={() => (showAll = !showAll)}>
+      {showAll ? 'Скрыть разделы других выходов' : 'Показать все разделы'}
+    </button>
+    <a class="muted small" href="#nvs">открыть autoexec1 в NVS</a>
+  </div>
+
+  <p class="muted small">Итоговая строка:</p>
+  <pre class="code">{command}</pre>
+
+  <div class="actions">
+    <button class="primary" onclick={save} disabled={saving || !changedCount}>
+      {saving ? 'Сохраняю…' : changedCount ? `Сохранить (${changedCount})` : 'Сохранить'}
+    </button>
     <button onclick={() => reboot()}>Перезагрузить</button>
     <button onclick={load}>Обновить</button>
   </div>
