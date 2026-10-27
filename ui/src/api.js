@@ -49,6 +49,9 @@ export const getStatus = (timeout) => request('/status.json', { timeout });
 export const getConfig = (timeout) => request('/config.json', { timeout });
 export const getCommands = () => request('/commands.json');
 export const getScan = () => request('/scan.json');
+export const scan = () => request('/scan.json', { timeout: 20000 });
+export const connect = (ssid, pwd) =>
+  request('/connect.json', { method: 'POST', body: JSON.stringify({ timestamp: Date.now(), ssid, pwd }), timeout: 15000 });
 export const reboot = () => request('/reboot.json', { method: 'POST' });
 
 // Write NVS entries: { key: "value" } or { key: { type, value } } -> POST /config.json

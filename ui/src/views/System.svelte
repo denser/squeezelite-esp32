@@ -118,8 +118,12 @@
         {#if f.key === 'ap_pwd'}
           <span class="with-eye">
             <input type={showPwd ? 'text' : 'password'} bind:value={form[f.key]} />
-            <button class="eye" onclick={() => (showPwd = !showPwd)} title={showPwd ? 'скрыть' : 'показать'}>
-              {showPwd ? '🙈' : '👁'}
+            <button class="eye" type="button" onclick={() => (showPwd = !showPwd)} title={showPwd ? 'скрыть' : 'показать'}>
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z" fill="none" stroke="currentColor" stroke-width="1.7" />
+                <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.7" />
+                {#if !showPwd}<line x1="4" y1="20" x2="20" y2="4" stroke="currentColor" stroke-width="1.7" />{/if}
+              </svg>
             </button>
           </span>
         {:else}
@@ -134,18 +138,17 @@
   <div class="form">
     <label>
       Категория <span class="muted">(-d до «=»)</span>
-      <input bind:value={logTarget} list="log-targets" placeholder="all" />
-      <datalist id="log-targets">
-        {#each LOG_TARGETS as t}<option value={t}></option>{/each}
-      </datalist>
+      <select bind:value={logTarget}>
+        <option value="">— выключено —</option>
+        {#each LOG_TARGETS as t}<option value={t}>{t}</option>{/each}
+      </select>
     </label>
 
     <label>
       Уровень <span class="muted">(после «=»)</span>
-      <input bind:value={logLevel} list="log-levels" placeholder="info" />
-      <datalist id="log-levels">
-        {#each LOG_LEVELS as l}<option value={l}></option>{/each}
-      </datalist>
+      <select bind:value={logLevel} disabled={!logTarget}>
+        {#each LOG_LEVELS as l}<option value={l}>{l}</option>{/each}
+      </select>
     </label>
 
     <label>
@@ -188,7 +191,11 @@
   <div class="form">
     <label>
       Ключ доступа <span class="muted">(web_token)</span>
-      <input bind:value={form.web_token} placeholder="пусто = без защиты" />
+      <span class="with-actions">
+        <input bind:value={form.web_token} placeholder="пусто = без защиты" />
+        <button class="icon-btn" type="button" title="сгенерировать новый ключ" onclick={() => (form.web_token = generateToken())}>⟳</button>
+        <button class="icon-btn" type="button" title="скопировать ссылку с ключом" onclick={() => navigator.clipboard?.writeText(linkWithToken(form.web_token))}>⧉</button>
+      </span>
     </label>
     <label>
       Режим <span class="muted">(web_auth)</span>
@@ -204,13 +211,9 @@
       <span class="muted small hint">через запятую; звёздочка в конце — любой адрес подсети</span>
     </label>
   </div>
-  <div class="actions">
-    <button onclick={() => (form.web_token = generateToken())}>Сгенерировать</button>
-    <button onclick={() => navigator.clipboard?.writeText(linkWithToken(form.web_token))}>Скопировать ссылку</button>
-    {#if getToken()}
-      <span class="muted small">в браузере: <code>{getToken().slice(0, 6)}…</code></span>
-    {/if}
-  </div>
+  {#if getToken()}
+    <p class="muted small">Ключ в этом браузере: <code>{getToken().slice(0, 6)}…</code></p>
+  {/if}
   <p class="muted small">
     Ключ защищает только веб-интерфейс; консоль (UART/telnet) остаётся доступной — это аварийный вход.
   </p>

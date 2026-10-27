@@ -1,6 +1,9 @@
 <script>
   import { describeBt } from '../lib/bt.js';
   import { device } from '../lib/device.js';
+  import WifiModal from './WifiModal.svelte';
+
+  let wifiOpen = false;
 
   // the data comes from the shared poller in App.svelte
   $: status = $device.status;
@@ -60,7 +63,10 @@
   </section>
 
   <section class="card">
-    <h2>Сеть</h2>
+    <div class="card-head">
+      <h2>Сеть</h2>
+      <button class="chip" onclick={() => (wifiOpen = true)}>Настроить</button>
+    </div>
     <dl>
       <dt>Интерфейс</dt>
       <dd>{status?.if ?? '—'}</dd>
@@ -124,6 +130,10 @@
     </section>
   {/if}
 </div>
+
+{#if wifiOpen}
+  <WifiModal onclose={() => (wifiOpen = false)} />
+{/if}
 
 <p class="muted small">
   Обновлено: {lastUpdate ? lastUpdate.toLocaleTimeString() : '—'} · обновление каждые 5 с

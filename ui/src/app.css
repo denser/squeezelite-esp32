@@ -698,3 +698,120 @@ label > .hint {
   font: inherit;
   text-decoration: underline;
 }
+
+/* icon buttons sitting inside a field */
+.with-actions {
+  position: relative;
+  display: block;
+}
+
+.with-actions input {
+  padding-right: 70px;
+}
+
+.icon-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 2px 6px;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  color: var(--fg);
+}
+
+.with-actions .icon-btn:nth-of-type(1) {
+  right: 34px;
+}
+
+.with-actions .icon-btn:nth-of-type(2) {
+  right: 6px;
+}
+
+.eye svg {
+  display: block;
+}
+
+/* card header with an action on the right */
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-head h2 {
+  margin: 0;
+}
+
+.chip {
+  padding: 3px 10px;
+  font-size: 12.5px;
+  border-radius: 999px;
+}
+
+/* wifi modal */
+.modal-card.wide {
+  max-width: 620px;
+  max-height: 85vh;
+  overflow: auto;
+}
+
+.wifi-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 10px 0 16px;
+}
+
+.wifi-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.wifi-row.active {
+  border-color: var(--accent);
+}
+
+.wifi-name {
+  flex: 1;
+  font-weight: 500;
+}
+
+.wifi-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  width: 18px;
+  height: 12px;
+}
+
+.wifi-bars i {
+  width: 3px;
+  background: #2a3a55;
+  border-radius: 1px;
+}
+
+.wifi-bars i:nth-child(1) { height: 3px; }
+.wifi-bars i:nth-child(2) { height: 6px; }
+.wifi-bars i:nth-child(3) { height: 9px; }
+.wifi-bars i:nth-child(4) { height: 12px; }
+.wifi-bars i.on { background: #34d399; }
+
+.password-row {
+  border-style: dashed;
+}
+
+.password-row input {
+  flex: 1;
+}
