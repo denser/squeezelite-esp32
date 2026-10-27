@@ -38,7 +38,7 @@
   $: showBt = output.toLowerCase() === 'bt' || showAll;
   $: showDac = output.toLowerCase() === 'i2s' || showAll;
   $: showSpdif = output.toLowerCase() === 'spdif' || showAll;
-  $: command = buildCommand(autoexec1, form.buffers, output, resample, form.player_name, form.close_timeout);
+  $: command = buildCommand(autoexec1, form.buffers, output, resample, form.player_name, form.close_timeout, form.server);
   $: metaDirty = output !== originalOutput;
   $: changedCount = changedKeys().length + (metaDirty ? 1 : 0);
 
@@ -65,6 +65,7 @@
       form = {
         buffers: getOpt(tokenize(autoexec1), '-b'),
         player_name: getOpt(tokenize(autoexec1), '-n'),
+        server: getOpt(tokenize(autoexec1), '-s'),
         close_timeout: getOpt(tokenize(autoexec1), '-C'),
         dac_config: c.dac_config?.value ?? '',
         a2dp_sink_name: c.a2dp_sink_name?.value ?? '',
@@ -106,12 +107,12 @@
     try {
       const entries = {};
       // player_name / close_timeout live inside autoexec1, not as NVS keys
-      const pseudo = new Set(['player_name', 'close_timeout']);
+      const pseudo = new Set(['player_name', 'close_timeout', 'server']);
       for (const key of changedKeys()) {
         if (!pseudo.has(key)) entries[key] = form[key];
       }
 
-      const cmd = buildCommand(autoexec1, form.buffers, output, resample, form.player_name, form.close_timeout);
+      const cmd = buildCommand(autoexec1, form.buffers, output, resample, form.player_name, form.close_timeout, form.server);
       if (cmd !== autoexec1) entries.autoexec1 = cmd;
 
       const spdif = [];
@@ -164,6 +165,10 @@
     <label>
       Имя плеера <span class="muted">(-n)</span>
       <input class:dirty={dirty('player_name')} bind:value={form.player_name} placeholder="Living room" />
+    </label>
+    <label>
+      Сервер <span class="muted">(-s)</span>
+      <input class:dirty={dirty('server')} bind:value={form.server} placeholder="192.168.1.10" />
     </label>
     <label>
       Буферы, КБ <span class="muted">(-b поток:выход)</span>

@@ -1,7 +1,6 @@
 <script>
   import { onMount } from 'svelte';
   import Status from './views/Status.svelte';
-  import Player from './views/Player.svelte';
   import Nvs from './views/Nvs.svelte';
   import Audio from './views/Audio.svelte';
   import System from './views/System.svelte';
@@ -14,7 +13,6 @@
 
   const tabs = [
     { id: 'status', label: 'Статус' },
-    { id: 'player', label: 'Плеер' },
     { id: 'audio', label: 'Звук' },
     { id: 'screen', label: 'Экран' },
     { id: 'system', label: 'Система' },
@@ -151,8 +149,6 @@
 <main>
   {#if tab === 'status'}
     <Status />
-  {:else if tab === 'player'}
-    <Player />
   {:else if tab === 'audio'}
     <Audio />
   {:else if tab === 'system'}
