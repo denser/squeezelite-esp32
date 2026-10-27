@@ -107,6 +107,7 @@ const DefaultStringVal defaultStringVals[] = {
     {"display_local_volume", "n"},
     {"web_auth", ""},
     {"web_token", ""},
+    {"web_allow_ip", ""},
     {"telnet_enable", ""},
     {"telnet_buffer", "40000"},
     {"telnet_block", "500"},

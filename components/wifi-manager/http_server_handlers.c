@@ -234,6 +234,24 @@ static bool auth_mode_is_write(httpd_req_t *req) {
 	return req->method == HTTP_POST || req->method == HTTP_PUT || req->method == HTTP_DELETE;
 }
 
+/* web_allow_ip: comma separated addresses, a trailing '*' allows a whole subnet */
+static bool ip_is_allowed(const char *ip, const char *list) {
+	char buf[160];
+	snprintf(buf, sizeof(buf), "%s", list);
+	char *save = NULL;
+	for (char *tok = strtok_r(buf, ",", &save); tok; tok = strtok_r(NULL, ",", &save)) {
+		while (*tok == ' ') tok++;
+		size_t len = strlen(tok);
+		while (len && tok[len - 1] == ' ') tok[--len] = '\0';
+		if (!len) continue;
+		if (tok[len - 1] == '*') {
+			if (!strncmp(ip, tok, len - 1)) return true;
+		} else if (!strcmp(ip, tok)) {
+			return true;
+		}
+	}
+	return false;
+}
 static bool token_matches(httpd_req_t *req, const char *token) {
 	size_t token_len = strlen(token);
 	bool ok = false;
@@ -291,6 +309,21 @@ bool is_user_authenticated(httpd_req_t *req){
 
 	if (!enabled) return true;
 	if (ctx_data->authenticated) return true;
+
+	/* an allowlisted address never needs the key (recovery path) */
+	char *allow = config_alloc_get(NVS_TYPE_STR, "web_allow_ip");
+	if (allow && strlen(allow)) {
+		u16_t peer_port = 0;
+		char *peer = http_alloc_get_socket_address(req, 0, &peer_port);
+		if (peer && ip_is_allowed(peer, allow)) {
+			ctx_data->authenticated = true;
+			FREE_RESET(peer);
+			FREE_RESET(allow);
+			return true;
+		}
+		FREE_RESET(peer);
+	}
+	FREE_RESET(allow);
 
 	char *token = config_alloc_get(NVS_TYPE_STR, "web_token");
 	if (!token || !strlen(token)) {
