@@ -40,7 +40,12 @@
   $: showSpdif = output.toLowerCase() === 'spdif' || showAll;
   $: command = buildCommand(autoexec1, form.buffers, output, resample, form.player_name, form.close_timeout, form.server);
   $: metaDirty = output !== originalOutput;
-  $: changedCount = changedKeys().length + (metaDirty ? 1 : 0);
+  // the dependency on `form` must be visible here, otherwise Svelte never
+  // re-runs this when a field changes (a function call hides the dependency)
+  $: formDirty = Object.keys(form).filter(
+    (k) => !k.startsWith('__') && norm(form[k]) !== norm(original[k])
+  ).length;
+  $: changedCount = formDirty + (metaDirty ? 1 : 0);
 
   function clockOf(value) {
     const out = { clock: '', ws: '', data: '' };

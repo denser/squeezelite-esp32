@@ -34,7 +34,10 @@
   const dirty = (key) => norm(form[key]) !== norm(original[key]);
 
   $: logValue = logTarget ? `${logTarget}=${logLevel || 'info'}` : '';
-  $: changedCount = changedKeys().length + (logValue !== (getOpt(tokenize(autoexec1), '-d') || '') ? 1 : 0);
+  // reference `form` directly: a call to changedKeys() would hide the dependency
+  // and the save button would stay disabled until something else changed
+  $: formDirty = Object.keys(form).filter((k) => norm(form[k]) !== norm(original[k])).length;
+  $: changedCount = formDirty + (logValue !== (getOpt(tokenize(autoexec1), '-d') || '') ? 1 : 0);
 
   async function load() {
     error = '';
