@@ -929,3 +929,20 @@ select:focus {
   grid-template-columns: 1fr;
 }
 
+
+/* the theme switch matches the height of the reboot button */
+.sysbar {
+  align-items: stretch;
+}
+
+.theme-switch {
+  display: inline-flex;
+  align-items: stretch;
+}
+
+.theme-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+}
