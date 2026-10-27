@@ -1159,3 +1159,23 @@ select.dirty {
     position: static;
   }
 }
+
+@media (max-width: 900px) {
+  /* stack the header instead of squeezing it */
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .brand,
+  .sysbar {
+    width: 100%;
+  }
+
+  .sysbar {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-left: 0;
+  }
+}
