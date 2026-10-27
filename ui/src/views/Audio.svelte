@@ -79,6 +79,7 @@
       };
       form.__spdif = c.spdif_config?.value ?? '';
       original = { ...form };
+      originalOutput = getOpt(tokenize(autoexec1), '-o') || 'bt';
       preset = DAC_PRESETS.find((p) => p.value === form.dac_config)?.value ?? '';
     } catch (e) {
       error = e?.message ?? String(e);
