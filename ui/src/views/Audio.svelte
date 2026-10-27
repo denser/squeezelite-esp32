@@ -38,8 +38,9 @@
   $: showBt = output.toLowerCase() === 'bt' || showAll;
   $: showDac = output.toLowerCase() === 'i2s' || showAll;
   $: showSpdif = output.toLowerCase() === 'spdif' || showAll;
-  $: command = buildCommand(autoexec1, form.buffers, output, resample);
-  $: changedCount = changedKeys().length + (command !== autoexec1 ? 1 : 0);
+  $: command = buildCommand(autoexec1, form.buffers, output, resample, form.player_name, form.close_timeout);
+  $: metaDirty = output !== originalOutput;
+  $: changedCount = changedKeys().length + (metaDirty ? 1 : 0);
 
   function clockOf(value) {
     const out = { clock: '', ws: '', data: '' };
@@ -63,6 +64,8 @@
 
       form = {
         buffers: getOpt(tokenize(autoexec1), '-b'),
+        player_name: getOpt(tokenize(autoexec1), '-n'),
+        close_timeout: getOpt(tokenize(autoexec1), '-C'),
         dac_config: c.dac_config?.value ?? '',
         a2dp_sink_name: c.a2dp_sink_name?.value ?? '',
         a2dp_spin: c.a2dp_spin?.value ?? '',
@@ -101,9 +104,13 @@
     error = '';
     try {
       const entries = {};
-      for (const key of changedKeys()) entries[key] = form[key];
+      // player_name / close_timeout live inside autoexec1, not as NVS keys
+      const pseudo = new Set(['player_name', 'close_timeout']);
+      for (const key of changedKeys()) {
+        if (!pseudo.has(key)) entries[key] = form[key];
+      }
 
-      const cmd = buildCommand(autoexec1, form.buffers, output, resample);
+      const cmd = buildCommand(autoexec1, form.buffers, output, resample, form.player_name, form.close_timeout);
       if (cmd !== autoexec1) entries.autoexec1 = cmd;
 
       const spdif = [];
@@ -154,8 +161,16 @@
 
   <div class="form">
     <label>
+      Имя плеера <span class="muted">(-n)</span>
+      <input class:dirty={dirty('player_name')} bind:value={form.player_name} placeholder="Living room" />
+    </label>
+    <label>
       Буферы, КБ <span class="muted">(-b поток:выход)</span>
       <input class:dirty={dirty('buffers')} bind:value={form.buffers} placeholder="500:1000" />
+    </label>
+    <label>
+      Закрывать выход через, с <span class="muted">(-C, пусто = никогда)</span>
+      <input class:dirty={dirty('close_timeout')} bind:value={form.close_timeout} placeholder="3600" />
     </label>
   </div>
 
