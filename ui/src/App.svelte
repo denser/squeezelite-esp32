@@ -88,6 +88,13 @@
     <strong>Squeezelite-ESP32</strong>
     <span class="muted" id="host">{typeof location !== 'undefined' ? location.host : ''}</span>
   </div>
+
+  <nav class:open={menuOpen}>
+    {#each tabs as t}
+      <button class:active={tab === t.id} onclick={() => select(t.id)}>{t.label}</button>
+    {/each}
+  </nav>
+  <div class="sysbar">
   <button class="burger" class:open={menuOpen} onclick={() => (menuOpen = !menuOpen)} aria-label="меню">
     <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
       {#if menuOpen}
@@ -97,12 +104,6 @@
       {/if}
     </svg>
   </button>
-  <nav class:open={menuOpen}>
-    {#each tabs as t}
-      <button class:active={tab === t.id} onclick={() => select(t.id)}>{t.label}</button>
-    {/each}
-  </nav>
-  <div class="sysbar">
     {#if recovery}
       <span class="badge warn">восстановление</span>
     {/if}

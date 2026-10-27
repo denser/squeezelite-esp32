@@ -1151,3 +1151,11 @@ select.dirty {
     padding-right: 52px;
   }
 }
+
+@media (max-width: 900px) {
+  /* inside the control bar the button is always laid out */
+  .burger {
+    display: inline-flex;
+    position: static;
+  }
+}
