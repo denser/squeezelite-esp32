@@ -587,3 +587,32 @@ a.button:hover {
 .dot.spdif-idle {
   background: #4a3524;
 }
+
+/* --- lock screen --- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 10, 14, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 50;
+}
+
+.modal-card {
+  background: #141821;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-card h2 {
+  margin: 0;
+  font-size: 17px;
+}

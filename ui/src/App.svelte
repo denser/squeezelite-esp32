@@ -9,6 +9,7 @@
   import Placeholder from './views/Placeholder.svelte';
   import { device, startDevicePolling, describeLink } from './lib/device.js';
   import { reboot } from './api.js';
+  import { authRequired, setToken } from './lib/auth.js';
 
   const tabs = [
     { id: 'status', label: 'Статус' },
@@ -27,6 +28,13 @@
 
   let tab = fromHash();
   let rebooting = false;
+  let keyInput = '';
+
+  function unlock() {
+    setToken(keyInput.trim());
+    authRequired.set(false);
+    if (typeof location !== 'undefined') location.reload();
+  }
 
   function select(id) {
     tab = id;
@@ -79,6 +87,22 @@
   </div>
 </header>
 
+
+{#if $authRequired}
+  <div class="modal">
+    <div class="modal-card">
+      <h2>Нужен ключ доступа</h2>
+      <p class="muted small">
+        Устройство защищено ключом. Вставьте его, чтобы продолжить. Ключ хранится в этом
+        браузере и передаётся только плате.
+      </p>
+      <input bind:value={keyInput} placeholder="ключ доступа" onkeydown={(e) => e.key === 'Enter' && unlock()} />
+      <div class="actions">
+        <button class="primary" onclick={unlock} disabled={!keyInput.trim()}>Войти</button>
+      </div>
+    </div>
+  </div>
+{/if}
 <main>
   {#if tab === 'status'}
     <Status />

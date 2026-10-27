@@ -3,6 +3,7 @@
   import { getConfig, setConfig, reboot } from '../api.js';
   import { tokenize, join, getOpt, setOpt } from '../lib/args.js';
   import { device } from '../lib/device.js';
+  import { generateToken, linkWithToken } from '../lib/auth.js';
 
   const FIELDS = [
     { key: 'host_name', label: 'Имя хоста', hint: 'как устройство видно в сети', reboot: true },
@@ -48,7 +49,12 @@
       autoexec1 = c.autoexec1?.value ?? '';
       logLevel = getOpt(tokenize(autoexec1), '-d');
 
-      form = { stats: c.stats?.value ?? 'n', telnet_enable: c.telnet_enable?.value ?? 'n' };
+      form = {
+        stats: c.stats?.value ?? 'n',
+        telnet_enable: c.telnet_enable?.value ?? 'n',
+        web_token: c.web_token?.value ?? '',
+        web_auth: c.web_auth?.value ?? '',
+      };
       for (const f of FIELDS) form[f.key] = c[f.key]?.value ?? '';
       original = { ...form };
     } catch (e) {
@@ -190,6 +196,29 @@
     Список релизов и установка — на вкладке <a href="#firmware">Прошивка</a>.
   </p>
 
+  <h3>Доступ</h3>
+  <p class="muted small">
+    Один ключ вместо логина и пароля (как в Zigbee2MQTT). Пустой ключ = защита выключена.
+    После сохранения браузер попросит ключ заново.
+  </p>
+  <div class="form">
+    <label>
+      Ключ доступа
+      <input bind:value={form.web_token} placeholder="32 символа, например 3f9c…" />
+    </label>
+    <label>
+      Режим
+      <select bind:value={form.web_auth}>
+        <option value="">выключено</option>
+        <option value="write">только изменения (POST)</option>
+        <option value="all">всё (и чтение)</option>
+      </select>
+    </label>
+  </div>
+  <div class="actions">
+    <button onclick={() => (form.web_token = generateToken())}>Сгенерировать</button>
+    <button onclick={() => navigator.clipboard?.writeText(linkWithToken(form.web_token))}>Скопировать ссылку</button>
+  </div>
   <h3>Обслуживание</h3>
   <div class="actions">
     <a class="button" href="/config.json" download="squeezelite-config.json">Скачать конфиг</a>
