@@ -815,3 +815,33 @@ label > .hint {
 .password-row input {
   flex: 1;
 }
+
+/* the control must fill its wrapper, otherwise the icon sits outside the field */
+.with-eye input,
+.with-actions input {
+  display: block;
+  width: 100%;
+}
+
+.with-eye,
+.with-actions {
+  width: 100%;
+}
+
+/* custom chevron: room on the right, flips when the list is open (focus) */
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%238b93a7' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+select:focus {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 7l5-5 5 5' fill='none' stroke='%234c8dff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+select:disabled {
+  opacity: 0.55;
+}
