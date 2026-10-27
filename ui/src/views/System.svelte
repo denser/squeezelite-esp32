@@ -177,7 +177,7 @@
   </label>
 
   <h3>Обновления</h3>
-  <div class="form">
+  <div class="form stacked">
     {#each FIELDS.slice(6) as f (f.key)}
       <label>
         {f.label}

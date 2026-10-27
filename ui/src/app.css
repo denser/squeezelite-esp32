@@ -924,3 +924,8 @@ select:focus {
   display: block;
 }
 
+
+/* one field per row, so long values stay readable */.form.stacked {
+  grid-template-columns: 1fr;
+}
+
