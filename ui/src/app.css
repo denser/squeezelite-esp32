@@ -1043,3 +1043,65 @@ select.dirty {
     flex: 1;
   }
 }
+
+/* narrow screens: nothing may overflow horizontally */
+@media (max-width: 900px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .brand {
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .brand strong {
+    white-space: nowrap;
+  }
+
+  .brand #host {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  main {
+    padding: 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card {
+    min-width: 0;
+  }
+
+  dl,
+  .facts {
+    grid-template-columns: minmax(90px, max-content) minmax(0, 1fr);
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+    text-align: right;
+  }
+
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .nvs-row {
+    grid-template-columns: 1fr;
+  }
+
+  .segmented {
+    display: flex;
+    width: 100%;
+  }
+
+  .segmented button {
+    flex: 1;
+  }
+}
