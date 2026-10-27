@@ -93,10 +93,13 @@
   }
 
   // parameters are explicit so Svelte re-runs this whenever any of them changes
-  function buildCommand(line, buffers, out, resampleOn) {
+  function buildCommand(line, buffers, out, resampleOn, playerName, closeTimeout, server) {
     let t = tokenize(line);
     t = setOpt(t, '-o', out);
+    t = setOpt(t, '-s', norm(server).trim());
+    t = setOpt(t, '-n', norm(playerName).trim());
     t = setOpt(t, '-b', norm(buffers).trim());
+    t = setOpt(t, '-C', norm(closeTimeout).trim());
     t = setFlag(t, '-R', resampleOn);
     return join(t);
   }
