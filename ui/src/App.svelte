@@ -10,6 +10,7 @@
   import { device, startDevicePolling, describeLink } from './lib/device.js';
   import { reboot } from './api.js';
   import { authRequired, setToken } from './lib/auth.js';
+  import { theme, setTheme, initTheme } from './lib/theme.js';
 
   const tabs = [
     { id: 'status', label: 'Статус' },
@@ -29,6 +30,19 @@
   let tab = fromHash();
   let rebooting = false;
   let keyInput = '';
+  let confirmReboot = false;
+  let confirmTimer = null;
+
+  function armReboot() {
+    if (confirmReboot) {
+      clearTimeout(confirmTimer);
+      confirmReboot = false;
+      doReboot();
+      return;
+    }
+    confirmReboot = true;
+    confirmTimer = setTimeout(() => (confirmReboot = false), 4000);
+  }
 
   function unlock() {
     setToken(keyInput.trim());
@@ -53,6 +67,7 @@
   }
 
   onMount(() => {
+    initTheme();
     const stop = startDevicePolling(5000);
     const onHash = () => (tab = fromHash());
     window.addEventListener('hashchange', onHash);
@@ -81,8 +96,13 @@
     {#if recovery}
       <span class="badge warn">восстановление</span>
     {/if}
-    <button class:primary={recovery} onclick={doReboot} disabled={rebooting}>
-      {rebooting ? 'Перезагружаю…' : recovery ? 'Выйти из восстановления' : 'Перезагрузить'}
+    <div class="theme-switch" role="group" aria-label="тема">
+      <button class:active={$theme === 'light'} title="светлая" onclick={() => setTheme('light')}>☀</button>
+      <button class:active={$theme === 'dark'} title="тёмная" onclick={() => setTheme('dark')}>☾</button>
+      <button class:active={$theme === 'system'} title="как в системе" onclick={() => setTheme('system')}>◐</button>
+    </div>
+    <button class:primary={recovery || confirmReboot} onclick={armReboot} disabled={rebooting}>
+      {rebooting ? 'Перезагружаю…' : confirmReboot ? 'Точно перезагрузить?' : recovery ? 'Выйти из восстановления' : 'Перезагрузить'}
     </button>
   </div>
 </header>

@@ -1,4 +1,5 @@
-:root {
+:root,
+:root[data-theme='dark'] {
   --bg: #0f1115;
   --card: #171a21;
   --line: #262b36;
@@ -8,7 +9,30 @@
   --ok: #38c172;
   --warn: #f0b429;
   --err: #ef5350;
+  --input-bg: #0f1218;
+  --card-2: #141821;
+  --btn-bg: #1c2029;
+  --btn-hover: #232936;
+  --topbar: #12151b;
   color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --bg: #f4f6fa;
+  --card: #ffffff;
+  --line: #dde2ea;
+  --fg: #1b1f27;
+  --muted: #5c6472;
+  --accent: #2f6fe4;
+  --ok: #1f9d55;
+  --warn: #b7791f;
+  --err: #d64545;
+  --input-bg: #ffffff;
+  --card-2: #ffffff;
+  --btn-bg: #eef1f6;
+  --btn-hover: #e3e8f1;
+  --topbar: #ffffff;
+  color-scheme: light;
 }
 
 * {
@@ -30,7 +54,7 @@ body {
   gap: 12px;
   padding: 12px 20px;
   border-bottom: 1px solid var(--line);
-  background: #12151b;
+  background: var(--topbar);
   position: sticky;
   top: 0;
   z-index: 5;
@@ -68,13 +92,13 @@ nav button {
 
 nav button:hover {
   color: var(--fg);
-  background: #1c2029;
+  background: var(--btn-bg);
 }
 
 nav button.active {
   color: var(--fg);
   border-color: var(--line);
-  background: #1c2029;
+  background: var(--btn-bg);
 }
 
 main {
@@ -154,7 +178,7 @@ code {
   border-radius: 999px;
   font-size: 13px;
   border: 1px solid var(--line);
-  background: #1c2029;
+  background: var(--btn-bg);
 }
 
 .state[data-tone='on'] .pill {
@@ -229,7 +253,7 @@ label {
 }
 
 input {
-  background: #0f1218;
+  background: var(--input-bg);
   border: 1px solid var(--line);
   color: var(--fg);
   border-radius: 8px;
@@ -263,7 +287,7 @@ button:disabled {
 }
 
 .code {
-  background: #0f1218;
+  background: var(--input-bg);
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 10px 12px;
@@ -308,7 +332,7 @@ button:disabled {
   gap: 10px;
   align-items: center;
   padding: 6px 10px;
-  border-bottom: 1px solid #1e232c;
+  border-bottom: 1px solid var(--line);
 }
 
 .nvs-row:last-child {
@@ -337,7 +361,7 @@ button:disabled {
 
 /* --- buttons --- */
 button {
-  background: #1c2029;
+  background: var(--btn-bg);
   border: 1px solid var(--line);
   color: var(--fg);
   border-radius: 8px;
@@ -349,7 +373,7 @@ button {
 
 button:hover:not(:disabled) {
   border-color: #3b4354;
-  background: #232936;
+  background: var(--btn-hover);
 }
 
 button.primary {
@@ -371,7 +395,7 @@ button:disabled {
 
 /* --- select + inline checkbox --- */
 select {
-  background: #0f1218;
+  background: var(--input-bg);
   border: 1px solid var(--line);
   color: var(--fg);
   border-radius: 8px;
@@ -424,7 +448,7 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: 10px;
   padding: 10px 12px;
-  background: #141821;
+  background: var(--card-2);
 }
 
 .release .actions {
@@ -492,7 +516,7 @@ h3 {
 
 a.button {
   display: inline-block;
-  background: #1c2029;
+  background: var(--btn-bg);
   border: 1px solid var(--line);
   color: var(--fg);
   border-radius: 8px;
@@ -504,7 +528,7 @@ a.button {
 
 a.button:hover {
   border-color: #3b4354;
-  background: #232936;
+  background: var(--btn-hover);
 }
 
 .topbar {
@@ -601,7 +625,7 @@ a.button:hover {
 }
 
 .modal-card {
-  background: #141821;
+  background: var(--card-2);
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 20px;
@@ -844,4 +868,44 @@ select:focus {
 
 select:disabled {
   opacity: 0.55;
+}
+
+/* no native spinners: they highlight on hover and break the flat look */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+select:hover,
+select:focus {
+  background-color: var(--input-bg);
+}
+
+/* theme switch next to the reboot button */
+.theme-switch {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.theme-switch button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding: 5px 9px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.theme-switch button.active {
+  background: var(--btn-hover);
+  color: var(--fg);
 }
