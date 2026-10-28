@@ -422,11 +422,18 @@ select:focus {
 }
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  flex: none;
   margin-left: 6px;
-  padding: 1px 7px;
+  padding: 3px 11px;
+  border: 1px solid #35507a;
   border-radius: 999px;
   font-size: 11px;
+  line-height: 1.3;
+  white-space: nowrap;
   background: #22304a;
   color: #9fc2ff;
   vertical-align: middle;
@@ -492,6 +499,7 @@ a.muted {
 .badge.warn {
   background: #3a2c12;
   color: #ffcb6b;
+  border-color: #6d5622;
 }
 
 h3 {
