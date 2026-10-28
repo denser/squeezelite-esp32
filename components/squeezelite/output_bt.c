@@ -42,6 +42,8 @@ static uint8_t *btout;
 static frames_t oframes;
 static bool stats;
 static uint32_t bt_idle_since;
+static uint32_t bt_idle_off;      // ms, 0 = keep the link open (NVS "bt_idle_off", seconds)
+static bool bt_idle_released;     // the link was dropped because the player stayed idle
 
 static int _write_frames(frames_t out_frames, bool silence, s32_t gainL, s32_t gainR, u8_t flags,
 								s32_t cross_gain_in, s32_t cross_gain_out, ISAMPLE_T **cross_ptr);
@@ -70,6 +72,29 @@ DECLARE_ALL_MIN_MAX;
 static uint32_t bt_idle_callback(void) {
     return output.state <= OUTPUT_STOPPED ? pdTICKS_TO_MS(xTaskGetTickCount()) - bt_idle_since : 0;
 }
+
+/****************************************************************************************
+ * Idle link release
+ *
+ * The player reports "not playing" through output.state, but nothing in the Bluetooth
+ * layer reacts to that state: the A2DP link stays up and the sink never enters standby.
+ * When bt_idle_off is configured, expose the inactivity here so the BT state machine can
+ * drop the link and acquire it again once playback resumes.
+ */
+bool output_bt_idle_expired(void) {
+    if (!running || !bt_idle_off || bt_idle_released) return false;
+    if (output.state > OUTPUT_STOPPED) return false;
+    return (pdTICKS_TO_MS(xTaskGetTickCount()) - bt_idle_since) >= bt_idle_off;
+}
+
+void output_bt_set_released(bool released) {
+    bt_idle_released = released;
+    bt_idle_since = pdTICKS_TO_MS(xTaskGetTickCount());
+}
+
+bool output_bt_is_released(void) {
+    return bt_idle_released;
+}
 	
 /****************************************************************************************
  * Init BT sink
@@ -80,6 +105,14 @@ void output_init_bt(log_level level, char *device, unsigned output_buf_size, cha
     // idle counter
     bt_idle_since = pdTICKS_TO_MS(xTaskGetTickCount());
     services_sleep_setsleeper(bt_idle_callback);
+
+    // release the sink after a period of inactivity so that it can go to standby
+    // (NVS bt_idle_off, seconds, 0 = never release)
+    char *idle_off = config_alloc_get_default(NVS_TYPE_STR, "bt_idle_off", "0", 0);
+    bt_idle_off = idle_off ? (uint32_t) (atol(idle_off) * 1000) : 0;
+    free(idle_off);
+    bt_idle_released = false;
+    LOG_INFO("release the sink after %u ms of inactivity (0 = never)", bt_idle_off);
     
     // even BT has a right to use led :-)
     led_blink(LED_GREEN, 200, 1000);
@@ -236,4 +269,5 @@ void output_bt_stop(void) {
 void output_bt_start(void) {
     led_on(LED_GREEN);
     bt_idle_since = pdTICKS_TO_MS(xTaskGetTickCount());
+    bt_idle_released = false;
 }

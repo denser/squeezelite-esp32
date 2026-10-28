@@ -30,6 +30,9 @@ extern void 	output_bt_stop(void);
 extern void 	output_bt_start(void);
 extern char*	output_state_str(void);
 extern bool		output_stopped(void);
+extern bool		output_bt_idle_expired(void);
+extern void		output_bt_set_released(bool released);
+extern bool		output_bt_is_released(void);
 extern bool is_recovery_running;
 
 static void bt_app_av_state_connecting(uint16_t event, void *param);
@@ -557,7 +560,13 @@ static void handle_connect_state_connected(uint16_t event, esp_a2d_cb_param_t *p
         case ESP_A2D_CONNECTION_STATE_DISCONNECTED:
             ESP_LOGW(TAG,"a2dp disconnected");
             set_app_source_state(APP_AV_STATE_UNCONNECTED);
-            esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+            if (output_bt_is_released()) {
+                // keep the sink away: it is bonded and would happily reconnect by itself
+                ESP_LOGI(TAG,"sink released on purpose, staying non-connectable until playback resumes");
+                esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE);
+            } else {
+                esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+            }
             break;
         case ESP_A2D_CONNECTION_STATE_CONNECTING:
             unexpected_connection_state(bt_app_source_a2d_state, param->conn_stat.state);  
@@ -581,7 +590,12 @@ static void handle_connect_state_disconnecting(uint16_t event, esp_a2d_cb_param_
         case ESP_A2D_CONNECTION_STATE_DISCONNECTED:
             ESP_LOGI(TAG,"a2dp disconnected");
             set_app_source_state(APP_AV_STATE_UNCONNECTED);
-            esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);        
+            if (output_bt_is_released()) {
+                ESP_LOGI(TAG,"sink released on purpose, staying non-connectable until playback resumes");
+                esp_bt_gap_set_scan_mode(ESP_BT_NON_CONNECTABLE, ESP_BT_NON_DISCOVERABLE);
+            } else {
+                esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+            }
             break;
         case ESP_A2D_CONNECTION_STATE_CONNECTING:
             unexpected_connection_state(bt_app_source_a2d_state, param->conn_stat.state);  
@@ -836,6 +850,15 @@ static void bt_app_av_media_proc(uint16_t event, void *param)
     switch (bt_app_source_media_state) {
     case APP_AV_MEDIA_STATE_IDLE: {
     	if (event == BT_APP_HEART_BEAT_EVT) {
+            // The sink is idle: nothing has been played for a while. When bt_idle_off is
+            // configured, drop the link so that the speaker can go to standby; the link is
+            // acquired again as soon as a stream shows up (see the UNCONNECTED handler).
+            if (bt_app_source_a2d_state == APP_AV_STATE_CONNECTED && output_bt_idle_expired()) {
+                ESP_LOGI(TAG, "sink idle for too long, releasing the link so it can go to standby");
+                output_bt_set_released(true);
+                set_a2dp_media_state(APP_AV_MEDIA_STATE_WAIT_DISCONNECT);
+                break;
+            }
             if(!output_stopped())
             {
             	ESP_LOGI(TAG,"Output state is %s, Checking if A2DP is ready.", output_state_str());
@@ -939,6 +962,19 @@ static void bt_app_av_state_unconnected(uint16_t event, void *param)
 		default:
 			break;
 		}
+        // The link was released on purpose after a long idle period. Keep the sink
+        // released until something actually wants to play, then acquire it again.
+        if (output_bt_is_released()) {
+            if (output_stopped()) {
+                ESP_LOGD(TAG, "sink released while idle, not reconnecting");
+                break;
+            }
+            ESP_LOGI(TAG, "playback requested, acquiring the released sink again");
+            output_bt_set_released(false);
+            esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_GENERAL_DISCOVERABLE);
+            s_connect_failures = 0;
+            s_next_connect_attempt = 0;
+        }
         if (esp_timer_get_time() < s_next_connect_attempt) {
             ESP_LOGD(TAG, "backing off before the next connection attempt");
             break;

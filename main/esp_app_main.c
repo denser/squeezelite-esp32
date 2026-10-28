@@ -105,6 +105,7 @@ const DefaultStringVal defaultStringVals[] = {
     {"bat_config", ""},
     {"metadata_config", ""},
     {"display_local_volume", "n"},
+    {"bt_idle_off", "0"},
     {"web_auth", ""},
     {"web_token", ""},
     {"web_allow_ip", ""},

@@ -76,6 +76,7 @@
         a2dp_sink_name: c.a2dp_sink_name?.value ?? '',
         a2dp_spin: c.a2dp_spin?.value ?? '',
         a2dp_dev_name: c.a2dp_dev_name?.value ?? '',
+        bt_idle_off: c.bt_idle_off?.value ?? '0',
         enable_bt_sink: c.enable_bt_sink?.value ?? 'n',
         bt_sink_pin: c.bt_sink_pin?.value ?? '',
         bt_sink_volume: c.bt_sink_volume?.value ?? '',
@@ -213,6 +214,14 @@
       <label>
         Имя адаптера <span class="muted">(a2dp_dev_name)</span>
         <input class:dirty={dirty('a2dp_dev_name')} bind:value={form.a2dp_dev_name} placeholder="Squeezelite" />
+      </label>
+      <label>
+        Отпускать колонку через, с <span class="muted">(bt_idle_off, 0 = держать связь)</span>
+        <input class:dirty={dirty('bt_idle_off')} bind:value={form.bt_idle_off} placeholder="0" />
+        <span class="muted small hint">
+          Через сколько секунд тишины разорвать Bluetooth, чтобы колонка ушла в сон.
+          Соединение вернётся при следующем треке. Опция <code>-C</code> этого не делает.
+        </span>
       </label>
     </div>
 
