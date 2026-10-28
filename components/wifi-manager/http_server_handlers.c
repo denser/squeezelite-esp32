@@ -461,7 +461,9 @@ esp_err_t root_get_handler(httpd_req_t *req){
     httpd_resp_set_hdr(req, "Access-Control-Allow-Origin", "*");
     httpd_resp_set_hdr(req, "Accept-Encoding", "identity");
 
-    if (!is_user_authenticated(req)) return ESP_FAIL;
+    // The page itself is public on purpose: it holds no secrets, and a client that is
+    // not in web_allow_ip has to be able to load it in order to be asked for the key.
+    // Everything that exposes data or changes state stays behind is_user_authenticated().
 
 	int idx=-1;
 	if((idx=resource_get_index("index.html"))>=0){
@@ -492,7 +494,8 @@ esp_err_t root_get_handler(httpd_req_t *req){
 #define UI_SHELL_DEFAULT_URL "https://denser.github.io/squeezelite-esp32"
 
 esp_err_t app_get_handler(httpd_req_t *req){
-	if (!is_user_authenticated(req)) return ESP_FAIL;
+	// Public shell: the interface has to load before it can ask for the key. The data
+	// endpoints it calls (status/config/messages/...) are the ones that are protected.
 
 	static const char *page =
 		"<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\">"
