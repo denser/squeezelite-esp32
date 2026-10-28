@@ -38,6 +38,16 @@
   const changedKeys = () => Object.keys(form).filter((k) => norm(form[k]) !== norm(original[k]));
   const dirty = (key) => norm(form[key]) !== norm(original[key]);
 
+  // The firmware treats telnet_enable as a mode string, not a boolean:
+  // anything with Y/X means telnet, D means telnet plus a mirror on the serial port,
+  // everything else (including the empty default) is off.
+  const normalizeTelnet = (v) => {
+    const s = norm(v).toUpperCase();
+    if (s.includes('D')) return 'D';
+    if (s.includes('Y') || s.includes('X')) return 'Y';
+    return 'N';
+  };
+
   $: logValue = logTarget ? `${logTarget}=${logLevel || 'info'}` : '';
   // reference `form` directly: a call to changedKeys() would hide the dependency
   // and the save button would stay disabled until something else changed
@@ -59,7 +69,7 @@
 
       form = {
         stats: c.stats?.value ?? 'n',
-        telnet_enable: c.telnet_enable?.value ?? 'n',
+        telnet_enable: normalizeTelnet(c.telnet_enable?.value),
         web_auth: c.web_auth?.value ?? '',
         web_token: c.web_token?.value ?? '',
         web_allow_ip: c.web_allow_ip?.value ?? '',
@@ -198,10 +208,20 @@
     Итог: <code>{logValue || 'логи выключены'}</code> — пишется в строку запуска, применяется после перезагрузки.
   </p>
 
-  <label class="check">
-    <input type="checkbox" checked={isOn('telnet_enable')} onchange={() => toggle('telnet_enable')} />
-    Telnet-сервер (одно подключение за раз)
-  </label>
+  <div class="form">
+    <label>
+      Консоль <span class="muted">(telnet_enable)</span>
+      <select class:dirty={dirty('telnet_enable')} bind:value={form.telnet_enable}>
+        <option value="N">выключено</option>
+        <option value="Y">telnet</option>
+        <option value="D">telnet и серийный порт</option>
+      </select>
+      <span class="muted small hint">
+        Одно подключение за раз. «И серийный порт» дублирует вывод логов на UART.
+        Применяется после перезагрузки.
+      </span>
+    </label>
+  </div>
 
   <label class="check">
     <input type="checkbox" checked={isOn('stats')} onchange={() => toggle('stats')} />
