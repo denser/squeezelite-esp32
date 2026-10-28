@@ -3,6 +3,7 @@
   import { getConfig, setConfig, reboot } from '../api.js';
   import { tokenize, join, getOpt, setOpt } from '../lib/args.js';
   import { generateToken, linkWithToken, getToken } from '../lib/auth.js';
+  import { copyText } from '../lib/clipboard.js';
   import { followMessages, resetMessages } from '../lib/messages.js';
   import Result from '../components/Result.svelte';
 
@@ -33,6 +34,8 @@
   let busy = false;
   let releaseMessages = null;
   let stopTimer = null;
+  let copied = false;
+  let copiedTimer = null;
 
   const norm = (v) => String(v ?? '');
   const changedKeys = () => Object.keys(form).filter((k) => norm(form[k]) !== norm(original[k]));
@@ -126,6 +129,20 @@
     }
   }
 
+  // Copy the "open with key" link. navigator.clipboard is unavailable on the plain
+  // HTTP page served by the device, so the helper falls back to execCommand and
+  // reports whether it worked; show that as a short check mark on the button.
+  async function copyLink() {
+    const ok = await copyText(linkWithToken(form.web_token));
+    if (copiedTimer) clearTimeout(copiedTimer);
+    copied = ok;
+    copiedTimer = setTimeout(() => {
+      copied = false;
+      copiedTimer = null;
+    }, 1600);
+    if (!ok) error = 'Браузер не дал скопировать — выделите ссылку вручную.';
+  }
+
   const toggle = (key) => {
     form[key] = norm(form[key]).toLowerCase().startsWith('y') ? 'N' : 'Y';
   };
@@ -135,6 +152,7 @@
 
   onDestroy(() => {
     if (stopTimer) clearTimeout(stopTimer);
+    if (copiedTimer) clearTimeout(copiedTimer);
     if (releaseMessages) releaseMessages();
   });
 </script>
@@ -254,14 +272,20 @@
         <button
           class="icon-btn"
           type="button"
-          title="скопировать ссылку с ключом"
+          title={copied ? 'скопировано' : 'скопировать ссылку с ключом'}
           disabled={!form.web_token}
-          onclick={() => navigator.clipboard?.writeText(linkWithToken(form.web_token))}
+          onclick={copyLink}
         >
-          <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-            <rect x="9" y="9" width="11" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7" />
-            <path d="M15 6.5V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-          </svg>
+          {#if copied}
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+              <path d="M5 13l4 4L19 7" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          {:else}
+            <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+              <rect x="9" y="9" width="11" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.7" />
+              <path d="M15 6.5V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h1.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+            </svg>
+          {/if}
         </button>
       </span>
     </label>
