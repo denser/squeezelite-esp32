@@ -1192,3 +1192,77 @@ label code {
 code {
   vertical-align: baseline;
 }
+
+/* result panel: what the board reports while an action runs */
+.result {
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel-2, rgba(127, 127, 127, 0.06));
+  overflow: hidden;
+}
+
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95em;
+}
+
+.result-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+.result-state.done {
+  color: var(--ok, #4caf7d);
+}
+
+.result ul {
+  margin: 0;
+  padding: 8px 12px 10px;
+  list-style: none;
+  max-height: 220px;
+  overflow-y: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  line-height: 1.55;
+}
+
+.result li {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.result li.warn {
+  color: var(--dirty, #d9a441);
+}
+
+.result li.err {
+  color: #e06060;
+}
+
+.result li.muted {
+  color: var(--muted);
+}
+
+.spinner {
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--line);
+  border-top-color: var(--fg);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

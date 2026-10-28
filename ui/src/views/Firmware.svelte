@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { getConfig, getStatus, setConfig } from '../api.js';
+  import { messages, followMessages, resetMessages } from '../lib/messages.js';
 
   let relApi = '';
   let releasesUrl = '';
@@ -11,6 +12,7 @@
   let installing = '';
   let progress = null;
   let timer = null;
+  let release = null;
   let showAll = false;
   let onlyMine = true;
 
@@ -69,15 +71,14 @@
   }
 
   // The firmware posts its progress as a message whose text is itself JSON:
-  // {"ota_dsc":"...","ota_pct":N}. /messages.json wraps it as
-  // { message, type, class, sent_time, current_time } and drains the queue,
-  // so every message has to be parsed here before it is lost.
-  function readProgress(messages) {
+  // {"ota_dsc":"...","ota_pct":N}. The shared poller hands the messages over as
+  // { type, cls, text }, so the payload is parsed from `text`.
+  function readProgress(list) {
     let latest = null;
-    for (const item of messages ?? []) {
-      if (!item?.message) continue;
+    for (const item of list ?? []) {
+      const raw = String(item?.text ?? '');
       try {
-        const parsed = JSON.parse(item.message);
+        const parsed = JSON.parse(raw);
         if (parsed && parsed.ota_pct !== undefined) latest = parsed;
       } catch {
         /* not a JSON message - ignore */
@@ -86,27 +87,44 @@
     return latest;
   }
 
-  async function install(release) {
-    installing = release.tag;
+  function stopWatching() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
+    if (release) {
+      release();
+      release = null;
+    }
+  }
+
+  async function install(releaseInfo) {
+    installing = releaseInfo.tag;
     progress = { pct: 0, dsc: 'передаю команду на обновление' };
+    stopWatching();
+    resetMessages();
+    release = followMessages(700);
     try {
-      await setConfig({ fwurl: release.url });
-      if (!timer) {
-        timer = setInterval(async () => {
-          try {
-            const res = await fetch('/messages.json', { cache: 'no-store' });
-            if (!res.ok) return;
-            const ota = readProgress(await res.json());
-            if (ota) progress = { pct: ota.ota_pct, dsc: ota.ota_dsc };
-          } catch {
-            /* the device reboots during the update, so failures are expected */
-          }
-        }, 1000);
-      }
+      await setConfig({ fwurl: releaseInfo.url });
     } catch (e) {
       error = e?.message ?? String(e);
       installing = '';
       progress = null;
+      stopWatching();
+    }
+  }
+
+  // keep the panel in sync with whatever the board reports
+  $: {
+    const ota = readProgress($messages);
+    if (ota) {
+      progress = { pct: ota.ota_pct, dsc: ota.ota_dsc };
+      if (ota.ota_pct >= 100 && !timer) {
+        timer = setTimeout(() => {
+          installing = '';
+          stopWatching();
+        }, 5000);
+      }
     }
   }
 
@@ -122,7 +140,7 @@
   });
 
   onDestroy(() => {
-    if (timer) clearInterval(timer);
+    stopWatching();
   });
 </script>
 

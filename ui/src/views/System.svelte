@@ -1,8 +1,10 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { getConfig, setConfig, reboot } from '../api.js';
   import { tokenize, join, getOpt, setOpt } from '../lib/args.js';
   import { generateToken, linkWithToken, getToken } from '../lib/auth.js';
+  import { followMessages, resetMessages } from '../lib/messages.js';
+  import Result from '../components/Result.svelte';
 
   const FIELDS = [
     { key: 'host_name', label: 'Имя хоста', hint: 'как устройство видно в сети' },
@@ -28,6 +30,9 @@
   let msg = '';
   let error = '';
   let saving = false;
+  let busy = false;
+  let releaseMessages = null;
+  let stopTimer = null;
 
   const norm = (v) => String(v ?? '');
   const changedKeys = () => Object.keys(form).filter((k) => norm(form[k]) !== norm(original[k]));
@@ -66,10 +71,27 @@
     }
   }
 
-  async function save() {
+  // Watch the board's own messages while an action runs (Save Success, Rebooting, ...).
+  function watchBoard(holdMs) {
+    resetMessages();
+    busy = true;
+    if (!releaseMessages) releaseMessages = followMessages();
+    if (stopTimer) clearTimeout(stopTimer);
+    stopTimer = setTimeout(() => {
+      busy = false;
+      stopTimer = null;
+      if (releaseMessages) {
+        releaseMessages();
+        releaseMessages = null;
+      }
+    }, holdMs);
+  }
+
+  async function save(reloadOrReboot = false) {
     saving = true;
     msg = '';
     error = '';
+    watchBoard(reloadOrReboot ? 12000 : 4000);
     try {
       const entries = {};
       for (const key of changedKeys()) entries[key] = form[key];
@@ -85,7 +107,8 @@
 
       await setConfig(entries);
       msg = `Сохранено ключей: ${Object.keys(entries).length}.`;
-      await load();
+      if (reloadOrReboot) await reboot();
+      else await load();
     } catch (e) {
       error = e?.message ?? String(e);
     } finally {
@@ -99,6 +122,11 @@
   const isOn = (key) => norm(form[key]).toLowerCase().startsWith('y');
 
   onMount(load);
+
+  onDestroy(() => {
+    if (stopTimer) clearTimeout(stopTimer);
+    if (releaseMessages) releaseMessages();
+  });
 </script>
 
 <section class="card">
@@ -242,13 +270,17 @@
   <div class="actions">
     <a class="button" href="/config.json" download="squeezelite-config.json">Скачать конфиг</a>
     <a class="button" href="#nvs">Открыть NVS</a>
-    <button onclick={() => reboot()}>Перезагрузить</button>
     <button onclick={load}>Обновить</button>
   </div>
 
   <div class="actions">
-    <button class="primary" onclick={save} disabled={saving || !changedCount}>
+    <button class="primary" onclick={() => save(false)} disabled={saving || !changedCount}>
       {saving ? 'Сохраняю…' : changedCount ? `Сохранить (${changedCount})` : 'Сохранить'}
     </button>
+    <button onclick={() => save(true)} disabled={saving || !changedCount}>
+      Сохранить и перезагрузить
+    </button>
   </div>
+
+  <Result running={busy} />
 </section>

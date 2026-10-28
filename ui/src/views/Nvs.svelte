@@ -1,6 +1,8 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { getConfig, setConfig, reboot } from '../api.js';
+  import { followMessages, resetMessages } from '../lib/messages.js';
+  import Result from '../components/Result.svelte';
 
   const HINTS = {
     autoexec1: 'Командная строка плеера (её формируют вкладка «Звук» и встроенный интерфейс)',
@@ -25,6 +27,9 @@
   let msg = '';
   let error = '';
   let saving = false;
+  let busy = false;
+  let releaseMessages = null;
+  let stopTimer = null;
 
   async function load() {
     error = '';
@@ -54,18 +59,36 @@
     else changed[key] = { type: row.type, value };
   }
 
-  async function save() {
+  // Watch the board's own messages while an action runs (Save Success, Rebooting, ...).
+  function watchBoard(holdMs) {
+    resetMessages();
+    busy = true;
+    if (!releaseMessages) releaseMessages = followMessages();
+    if (stopTimer) clearTimeout(stopTimer);
+    stopTimer = setTimeout(() => {
+      busy = false;
+      stopTimer = null;
+      if (releaseMessages) {
+        releaseMessages();
+        releaseMessages = null;
+      }
+    }, holdMs);
+  }
+
+  async function save(reloadOrReboot = false) {
     saving = true;
     msg = '';
     error = '';
+    watchBoard(reloadOrReboot ? 12000 : 4000);
     try {
       if (!Object.keys(changed).length) {
         msg = 'Изменений нет.';
         return;
       }
       await setConfig(changed);
-      msg = `Сохранено ключей: ${Object.keys(changed).length}. Перезагрузите плеер.`;
-      await load();
+      msg = `Сохранено ключей: ${Object.keys(changed).length}.`;
+      if (reloadOrReboot) await reboot();
+      else await load();
     } catch (e) {
       error = e?.message ?? String(e);
     } finally {
@@ -79,6 +102,11 @@
   $: changedCount = Object.keys(changed).length;
 
   onMount(load);
+
+  onDestroy(() => {
+    if (stopTimer) clearTimeout(stopTimer);
+    if (releaseMessages) releaseMessages();
+  });
 </script>
 
 <section class="card">
@@ -108,10 +136,14 @@
   </div>
 
   <div class="actions">
-    <button class="primary" onclick={save} disabled={saving || !changedCount}>
+    <button class="primary" onclick={() => save(false)} disabled={saving || !changedCount}>
       {saving ? 'Сохраняю…' : changedCount ? `Сохранить (${changedCount})` : 'Сохранить'}
     </button>
-    <button onclick={() => reboot()}>Перезагрузить</button>
+    <button onclick={() => save(true)} disabled={saving || !changedCount}>
+      Сохранить и перезагрузить
+    </button>
     <button onclick={load}>Обновить</button>
   </div>
+
+  <Result running={busy} />
 </section>

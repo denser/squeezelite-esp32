@@ -84,6 +84,9 @@ static uint32_t bt_idle_callback(void) {
 bool output_bt_idle_expired(void) {
     if (!running || !bt_idle_off || bt_idle_released) return false;
     if (output.state > OUTPUT_STOPPED) return false;
+    // A pause keeps the link alive on purpose: the listener may come back in a minute and
+    // should not wait for a reconnect. Only an explicit stop releases the sink.
+    if (player_state == 2) return false;
     return (pdTICKS_TO_MS(xTaskGetTickCount()) - bt_idle_since) >= bt_idle_off;
 }
 
